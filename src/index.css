@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+
+  --color-surface: #fbf9f8;
+  --color-surface-dim: #dbd9d9;
+  --color-surface-bright: #fbf9f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f3f3;
+  --color-surface-container: #efeded;
+  --color-surface-container-high: #eae8e7;
+  --color-surface-container-highest: #e4e2e2;
+  --color-on-surface: #1b1c1c;
+  --color-on-surface-variant: #50453e;
+  --color-inverse-surface: #303030;
+  --color-inverse-on-surface: #f2f0f0;
+  --color-outline: #82746d;
+  --color-outline-variant: #d4c3ba;
+  --color-surface-tint: #79573f;
+  --color-primary: #553722;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #6f4e37;
+  --color-on-primary-container: #eec1a4;
+  --color-inverse-primary: #eabda0;
+  --color-secondary: #615e57;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e7e2d9;
+  --color-on-secondary-container: #67645d;
+  --color-tertiary: #593700;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #784c00;
+  --color-on-tertiary-container: #febf6d;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-primary-fixed: #ffdcc6;
+  --color-primary-fixed-dim: #eabda0;
+  --color-on-primary-fixed: #2d1604;
+  --color-on-primary-fixed-variant: #5f402a;
+  --color-secondary-fixed: #e7e2d9;
+  --color-secondary-fixed-dim: #cbc6bd;
+  --color-on-secondary-fixed: #1d1b16;
+  --color-on-secondary-fixed-variant: #494640;
+  --color-tertiary-fixed: #ffddb6;
+  --color-tertiary-fixed-dim: #f9bb69;
+  --color-on-tertiary-fixed: #2a1800;
+  --color-on-tertiary-fixed-variant: #643f00;
+  --color-background: #fbf9f8;
+  --color-on-background: #1b1c1c;
+  --color-surface-variant: #e4e2e2;
+  --color-status-ready: #4F7942;
+  --color-status-treatment: #D97706;
+  --color-surface-cream: #FAF7F2;
+  --color-border-warm: #E5DCD3;
+
+  --spacing-margin-mobile: 16px;
+  --spacing-container-max: 1200px;
+  --spacing-gutter: 24px;
+  --spacing-margin-desktop: 40px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.auth-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.bg-auth-overlay {
+  background: radial-gradient(circle at center, rgba(var(--color-primary-rgb), 0.1), rgba(0, 0, 0, 0.4));
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "admin_01",
+    "name": "Super Admin",
+    "email": "admin@pawhome.vn",
+    "password": "admin123",
+    "role": "admin",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "user_01",
+    "name": "Nguyễn Văn Người Nuôi",
+    "email": "user@gmail.com",
+    "password": "user123",
+    "role": "user",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+]
