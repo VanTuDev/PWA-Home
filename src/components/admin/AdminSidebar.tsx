@@ -1,5 +1,5 @@
 import React from 'react';
-import { PawPrint, LayoutDashboard, ClipboardList, Users, Settings } from 'lucide-react';
+import { PawPrint, LayoutDashboard, ClipboardList, Users, Settings, Sparkles, ShoppingBag, PackageCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface AdminSidebarProps {
@@ -7,19 +7,22 @@ interface AdminSidebarProps {
   setActiveTab: (tab: string) => void;
 }
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ 
-  activeTab, 
-  setActiveTab 
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({
+  activeTab,
+  setActiveTab
 }) => {
   const { user, isAdmin } = useAuth();
 
   // Create menu items. Filter out "users" if not super admin
   const menuItems = [
-    { id: 'overview', label: 'Tổng quan', icon: LayoutDashboard },
-    { id: 'pets', label: 'Quản lý thú cưng', icon: PawPrint },
-    { id: 'applications', label: 'Đơn đăng ký', icon: ClipboardList },
-    ...(isAdmin ? [{ id: 'users', label: 'Quản lý nhân sự', icon: Users }] : []),
-    { id: 'settings', label: 'Cài đặt', icon: Settings },
+    { id: 'overview',  label: 'Tổng quan',        icon: LayoutDashboard },
+    { id: 'pets',      label: 'Thú cưng',          icon: PawPrint        },
+    { id: 'products',  label: 'Sản phẩm Shop',     icon: ShoppingBag     },
+    { id: 'orders',    label: 'Đơn hàng',          icon: PackageCheck    },
+    { id: 'applications', label: 'Đơn nhận nuôi', icon: ClipboardList   },
+    { id: 'workflows', label: 'Quy trình AI',      icon: Sparkles        },
+    ...(isAdmin ? [{ id: 'users', label: 'Nhân sự', icon: Users }] : []),
+    { id: 'settings',  label: 'Cài đặt',           icon: Settings        },
   ];
 
   return (
@@ -35,14 +38,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       {/* Navigation Menu */}
       <nav className="flex-1 space-y-2">
         {menuItems.map((item) => (
-          <button 
+          <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === item.id 
-                ? 'bg-on-primary text-primary shadow-lg scale-[1.02]' 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === item.id
+                ? 'bg-on-primary text-primary shadow-lg scale-[1.02]'
                 : 'text-on-primary/60 hover:text-on-primary hover:bg-on-primary/10'
-            }`}
+              }`}
           >
             <item.icon className="w-5 h-5" />
             {item.label}

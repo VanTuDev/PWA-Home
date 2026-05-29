@@ -11,8 +11,9 @@ export interface UserSession {
 
 interface AuthContextType {
   user: UserSession | null;
+  token: string | null;
   loading: boolean;
-  login: (user: UserSession) => void;
+  login: (user: UserSession, token?: string) => void;
   logout: () => void;
   isAdmin: boolean;
   isManager: boolean;
@@ -24,11 +25,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserSession | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize mock users and load active session on startup
   useEffect(() => {
-    // 1. Initialize default users in localStorage if empty
+    // Khởi tạo admin mặc định trong localStorage (fallback offline)
     const savedUsers = localStorage.getItem('paw_users');
     if (!savedUsers) {
       localStorage.setItem('paw_users', JSON.stringify([
@@ -43,44 +44,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ]));
     }
 
-    // 2. Load current session
-    const currentSession = localStorage.getItem('user');
-    if (currentSession) {
+    // Phục hồi session
+    const savedSession = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('paw_token');
+
+    if (savedSession) {
       try {
-        setUser(JSON.parse(currentSession));
-      } catch (e) {
-        console.error("Failed to parse user session", e);
+        setUser(JSON.parse(savedSession));
+      } catch {
         localStorage.removeItem('user');
       }
     }
+    if (savedToken) setToken(savedToken);
+
     setLoading(false);
   }, []);
 
-  const login = (newUser: UserSession) => {
+  const login = (newUser: UserSession, newToken?: string) => {
     setUser(newUser);
     localStorage.setItem('user', JSON.stringify(newUser));
+    if (newToken) {
+      setToken(newToken);
+      localStorage.setItem('paw_token', newToken);
+    }
   };
 
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('paw_token');
   };
-
-  const isAdmin = user?.role === 'admin';
-  const isManager = user?.role === 'manager';
-  const isStaff = user?.role === 'staff';
-  const isUser = user?.role === 'user' || !user;
 
   return (
     <AuthContext.Provider value={{
       user,
+      token,
       loading,
       login,
       logout,
-      isAdmin,
-      isManager,
-      isStaff,
-      isUser
+      isAdmin: user?.role === 'admin',
+      isManager: user?.role === 'manager',
+      isStaff: user?.role === 'staff',
+      isUser: user?.role === 'user' || !user
     }}>
       {children}
     </AuthContext.Provider>

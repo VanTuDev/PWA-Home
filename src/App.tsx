@@ -19,6 +19,10 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { AnimatePresence } from 'motion/react';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { PaymentResult } from './pages/PaymentResult';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
+import { ChangePassword } from './pages/ChangePassword';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -30,11 +34,11 @@ const ScrollToTop = () => {
 
 const AppContent = () => {
   const location = useLocation();
-  const isAdminPath = 
-    location.pathname.startsWith('/admin') || 
-    location.pathname.startsWith('/staff') || 
-    location.pathname === '/login' || 
-    location.pathname === '/register';
+  const noNavPaths = [
+    '/admin', '/staff', '/login', '/register',
+    '/payment/result', '/forgot-password', '/reset-password', '/change-password'
+  ];
+  const isAdminPath = noNavPaths.some(p => location.pathname.startsWith(p));
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -54,6 +58,14 @@ const AppContent = () => {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/staff/login" element={<StaffLogin />} />
             <Route path="/survey" element={<Survey />} />
+            <Route path="/payment/result"   element={<PaymentResult />} />
+            <Route path="/forgot-password"  element={<ForgotPassword />} />
+            <Route path="/reset-password"   element={<ResetPassword />} />
+            <Route path="/change-password"  element={
+              <ProtectedRoute allowedRoles={['admin','manager','staff','user']}>
+                <ChangePassword />
+              </ProtectedRoute>
+            } />
             <Route 
               path="/admin" 
               element={

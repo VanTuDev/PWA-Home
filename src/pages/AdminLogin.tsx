@@ -1,119 +1,180 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, Lock, Mail, ArrowRight, Eye, EyeOff, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, Eye, EyeOff, ShieldAlert, PawPrint } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState('');
+  const [formData, setFormData]         = useState({ email: '', password: '' });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('paw_users') || '[]');
-      const user = users.find(u => u.email === formData.email && u.password === formData.password);
-      
-      if (user) {
-        if (user.role === 'admin') {
-          localStorage.setItem('user', JSON.stringify(user));
-          navigate('/admin');
-        } else {
-          setError('Truy cập bị từ chối. Cổng này chỉ dành cho Quản trị viên hệ thống.');
-        }
-      } else {
-        setError('Thông tin đăng nhập không chính xác.');
+    try {
+      const res  = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Thông tin đăng nhập không chính xác.');
+        return;
       }
+
+      const allowedRoles = ['admin', 'manager', 'staff'];
+      if (!allowedRoles.includes(data.user?.role)) {
+        setError('Truy cập bị từ chối. Cổng này chỉ dành cho quản trị viên hệ thống.');
+        return;
+      }
+
+      login(data.user, data.token);
+      navigate('/admin');
+    } catch {
+      setError('Không thể kết nối máy chủ. Hãy đảm bảo backend đang chạy.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#0f172a] relative overflow-hidden">
-      {/* Tech-inspired background */}
-      <div className="absolute inset-0 z-0">
-         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(30,58,138,0.2),transparent)]"></div>
-         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#0a0f1e] relative overflow-hidden">
+
+      {/* Animated background blobs */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 opacity-[0.025]"
+          style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 0)', backgroundSize: '36px 36px' }} />
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-md p-8"
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-[420px] px-4"
       >
+        {/* Logo */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/20 rounded-3xl mb-6 border border-primary/30">
-            <ShieldCheck className="w-10 h-10 text-primary" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[28px] mb-5 bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 shadow-[0_0_40px_rgba(85,55,34,0.3)]">
+            <ShieldCheck className="w-9 h-9 text-primary" />
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tighter mb-2">PAW ADMIN PORTAL</h1>
-          <p className="text-slate-400 text-sm font-medium">Hệ thống quản trị trung tâm PAW Home</p>
+          <h1 className="text-3xl font-black text-white tracking-tight mb-1">PAW Admin Portal</h1>
+          <p className="text-slate-500 text-sm font-medium">Hệ thống quản trị trung tâm PAW Home</p>
         </div>
 
+        {/* Error banner */}
         {error && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400 text-xs font-bold"
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-5 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 text-red-400 text-xs font-semibold"
           >
-            <ShieldAlert className="w-5 h-5 flex-shrink-0" />
-            {error}
+            <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>{error}</span>
           </motion.div>
         )}
 
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-[40px] shadow-2xl">
-          <form onSubmit={handleLogin} className="space-y-6">
+        {/* Card */}
+        <div className="bg-white/[0.04] backdrop-blur-2xl border border-white/10 rounded-[36px] p-8 shadow-2xl">
+          <form onSubmit={handleLogin} className="space-y-5">
+
+            {/* Email */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Email quản trị</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                Email quản trị
+              </label>
               <div className="relative">
-                <input 
-                  type="email" required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-12 py-4 text-white focus:ring-2 focus:ring-primary outline-none transition-all font-bold"
-                  placeholder="admin@pawhome.vn"
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="Vantu.dev@gmail.com"
                   value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-slate-600 focus:ring-2 focus:ring-primary/50 focus:border-primary/40 outline-none transition-all font-medium text-sm"
                 />
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
               </div>
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Mật khẩu hệ thống</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
+                Mật khẩu
+              </label>
               <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} required
-                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-12 py-4 text-white focus:ring-2 focus:ring-primary outline-none transition-all font-bold"
-                  placeholder="••••••••"
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••••••"
                   value={formData.password}
-                  onChange={e => setFormData({...formData, password: e.target.value})}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-white placeholder-slate-600 focus:ring-2 focus:ring-primary/50 focus:border-primary/40 outline-none transition-all font-medium text-sm"
                 />
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600" />
-                <button 
-                  type="button" 
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
+                <button
+                  type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <button 
-              disabled={loading}
-              className="w-full bg-primary text-on-primary py-5 rounded-[24px] font-black text-lg shadow-xl shadow-primary/20 flex items-center justify-center gap-3 hover:bg-primary-container transition-all active:scale-95 disabled:opacity-50"
-            >
-              {loading ? "ĐANG XÁC THỰC..." : "XÁC NHẬN TRUY CẬP"}
-              <ArrowRight className="w-6 h-6" />
-            </button>
+            {/* Submit */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-2xl font-black text-sm tracking-wider bg-primary text-on-primary shadow-lg shadow-primary/20 flex items-center justify-center gap-3 hover:bg-primary/90 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    ĐANG XÁC THỰC...
+                  </>
+                ) : (
+                  <>XÁC NHẬN TRUY CẬP <ArrowRight className="w-4 h-4" /></>
+                )}
+              </button>
+            </div>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">hoặc</span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          {/* Back to public login */}
+          <Link to="/login"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-white/10 text-slate-400 text-sm font-bold hover:bg-white/5 hover:text-white transition-all"
+          >
+            <PawPrint className="w-4 h-4" />
+            Đăng nhập tài khoản thường
+          </Link>
         </div>
 
-        <div className="mt-10 text-center">
-           <Link to="/" className="text-slate-500 text-sm font-bold hover:text-white transition-colors">Quay lại trang chủ</Link>
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <Link to="/" className="text-slate-600 text-xs font-bold hover:text-slate-300 transition-colors">
+            ← Quay lại trang chủ PAW Home
+          </Link>
         </div>
       </motion.div>
     </div>
