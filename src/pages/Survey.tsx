@@ -81,8 +81,8 @@ const QUESTIONS: Question[] = [
   }
 ];
 
-const imgSrc = (img: string) =>
-  img?.startsWith('/uploads') ? `http://localhost:5000${img}` : img;
+const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
+const imgSrc = (img: string) => img?.startsWith('/uploads') ? `${BE_URL}${img}` : img;
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export const Survey: React.FC = () => {

@@ -75,18 +75,8 @@ export const Auth: React.FC = () => {
       navigate(data.user.role === 'admin' || data.user.role === 'manager' || data.user.role === 'staff'
         ? '/admin'
         : '/');
-    } catch (err: any) {
-      // Fallback sang localStorage nếu server không kết nối được
-      const users = JSON.parse(localStorage.getItem('paw_users') || '[]');
-      const localUser = users.find(
-        (u: any) => u.email === formData.email && u.password === formData.password
-      );
-      if (localUser) {
-        login(localUser);
-        navigate(localUser.role === 'admin' ? '/admin' : '/');
-      } else {
-        setError('Không thể kết nối máy chủ. Vui lòng thử lại.');
-      }
+    } catch {
+      setError('Không thể kết nối máy chủ. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

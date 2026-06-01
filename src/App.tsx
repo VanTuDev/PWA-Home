@@ -25,6 +25,9 @@ import { ResetPassword } from './pages/ResetPassword';
 import { ChangePassword } from './pages/ChangePassword';
 import { AIChatBot } from './components/AIChatBot';
 
+// Ping BE ngay khi app load để wake up Render free tier trước khi user action
+fetch('/api/').catch(() => {});
+
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   React.useEffect(() => {
