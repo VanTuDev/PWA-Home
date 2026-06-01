@@ -31,6 +31,7 @@ export const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
+  const [emailTaken, setEmailTaken] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [otp, setOtp] = useState('');
   const [regStep, setRegStep] = useState(1); // 1: thông tin, 2: email, 3: OTP
@@ -95,6 +96,7 @@ export const Auth: React.FC = () => {
   const handleSendOtp = async () => {
     setLoading(true);
     setError('');
+    setEmailTaken(false);
     setSuccessMsg('');
     try {
       const res = await fetch('/api/auth/register', {
@@ -110,7 +112,11 @@ export const Auth: React.FC = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message);
+        if (res.status === 400 && data.message?.includes('đã được sử dụng')) {
+          setEmailTaken(true);
+        } else {
+          setError(data.message);
+        }
         return;
       }
 
@@ -347,6 +353,20 @@ export const Auth: React.FC = () => {
                     )}
                   </div>
 
+                  {emailTaken && (
+                    <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                      <p className="text-sm font-black text-amber-800 mb-1">Email này đã có tài khoản!</p>
+                      <p className="text-xs text-amber-700 mb-3">Bạn đã đăng ký với email <strong>{formData.email}</strong>. Hãy đăng nhập thay vì tạo tài khoản mới.</p>
+                      <button
+                        type="button"
+                        onClick={() => { setEmailTaken(false); setIsLogin(true); setRegStep(1); setError(''); }}
+                        className="w-full bg-amber-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-amber-700 transition-colors"
+                      >
+                        Chuyển sang Đăng nhập
+                      </button>
+                    </div>
+                  )}
+
                   {error && (
                     <div className="mb-6 p-4 bg-error-container text-on-error-container rounded-2xl text-xs font-bold">
                       {error}
@@ -445,7 +465,7 @@ export const Auth: React.FC = () => {
                             className="w-full bg-white border border-outline-variant rounded-2xl px-10 py-4 focus:ring-4 focus:ring-primary/10 outline-none transition-all text-sm font-bold"
                             placeholder="name@email.com"
                             value={formData.email}
-                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                            onChange={e => { setFormData({ ...formData, email: e.target.value }); setEmailTaken(false); setError(''); }}
                           />
                           <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
                         </div>

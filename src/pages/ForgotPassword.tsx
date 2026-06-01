@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, ArrowRight, PawPrint, CheckCircle } from 'lucide-react';
@@ -6,13 +7,16 @@ import { Mail, ArrowLeft, ArrowRight, PawPrint, CheckCircle } from 'lucide-react
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail]       = useState('');
   const [loading, setLoading]   = useState(false);
+  const [slowServer, setSlowServer] = useState(false);
   const [sent, setSent]         = useState(false);
   const [error, setError]       = useState('');
   const [demoUrl, setDemoUrl]   = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError('');
+    flushSync(() => { setLoading(true); setError(''); setSlowServer(false); });
+
+    const slowTimer = setTimeout(() => setSlowServer(true), 5000);
 
     try {
       const res  = await fetch('/api/auth/forgot-password', {
@@ -28,6 +32,8 @@ export const ForgotPassword: React.FC = () => {
     } catch {
       setError('Không thể kết nối máy chủ. Vui lòng thử lại.');
     } finally {
+      clearTimeout(slowTimer);
+      setSlowServer(false);
       setLoading(false);
     }
   };
@@ -96,6 +102,12 @@ export const ForgotPassword: React.FC = () => {
                       <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
                     </div>
                   </div>
+
+                  {slowServer && (
+                    <p className="text-xs text-amber-600 font-semibold text-center animate-pulse">
+                      ⏳ Server đang khởi động, vui lòng đợi thêm vài giây...
+                    </p>
+                  )}
 
                   <button
                     type="submit" disabled={loading}
