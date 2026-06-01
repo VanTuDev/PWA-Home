@@ -23,6 +23,7 @@ import { PaymentResult } from './pages/PaymentResult';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { ChangePassword } from './pages/ChangePassword';
+import { AIChatBot } from './components/AIChatBot';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -80,6 +81,7 @@ const AppContent = () => {
         </AnimatePresence>
       </main>
       {!isAdminPath && <Footer />}
+      {!isAdminPath && <AIChatBot />}
     </div>
   );
 };

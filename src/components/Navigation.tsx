@@ -7,11 +7,13 @@ export const Navbar: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   
+  const isStaff = ['admin', 'manager', 'staff'].includes(user?.role ?? '');
+
   const navItems = [
     { name: 'Nhận nuôi', path: '/', icon: PawPrint },
     { name: 'Cộng đồng', path: '/community', icon: MessageSquare },
     { name: 'Cửa hàng', path: '/shop', icon: ShoppingBag },
-    { name: 'Quản trị', path: '/admin', icon: LayoutDashboard },
+    ...(isStaff ? [{ name: 'Quản trị', path: '/admin', icon: LayoutDashboard }] : []),
   ];
 
   const handleLogout = () => {
@@ -106,7 +108,7 @@ export const Footer: React.FC = () => {
             <li><Link to="/" className="hover:text-primary">Tìm thú cưng</Link></li>
             <li><Link to="/community" className="hover:text-primary">Cộng đồng</Link></li>
             <li><Link to="/shop" className="hover:text-primary">Cửa hàng</Link></li>
-            <li><Link to="/admin" className="hover:text-primary">Dành cho trung tâm</Link></li>
+            <li><Link to="/admin/login" className="hover:text-primary">Dành cho trung tâm</Link></li>
           </ul>
         </div>
 

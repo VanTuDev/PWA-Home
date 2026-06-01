@@ -29,21 +29,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Khởi tạo admin mặc định trong localStorage (fallback offline)
-    const savedUsers = localStorage.getItem('paw_users');
-    if (!savedUsers) {
-      localStorage.setItem('paw_users', JSON.stringify([
-        {
-          id: 'admin_01',
-          name: 'Super Admin',
-          email: 'admin@pawhome.vn',
-          password: 'admin123',
-          role: 'admin',
-          createdAt: new Date().toISOString()
-        }
-      ]));
-    }
-
     // Phục hồi session
     const savedSession = localStorage.getItem('user');
     const savedToken = localStorage.getItem('paw_token');
