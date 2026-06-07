@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Trash2, X } from 'lucide-react';
+import { UserPlus, Trash2, X, Edit2 } from 'lucide-react';
 
 interface User {
   _id: string;
@@ -7,6 +7,8 @@ interface User {
   email: string;
   phone?: string;
   role: 'admin' | 'manager' | 'staff' | 'user';
+  job?: string;
+  salary?: string;
   createdAt: string;
 }
 
@@ -14,6 +16,8 @@ const defaultForm = {
   name: '', email: '', phone: '', password: '',
   role: 'user' as 'admin' | 'manager' | 'staff' | 'user'
 };
+
+const defaultEditForm = { name: '', phone: '', job: '', salary: '', role: 'user' as User['role'] };
 
 const ROLE_STYLE: Record<string, string> = {
   admin:   'bg-red-50 text-red-700 border-red-100',
@@ -29,12 +33,17 @@ const authHeader = () => ({
 });
 
 export const UsersTab: React.FC = () => {
-  const [users, setUsers]       = useState<User[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [users, setUsers]         = useState<User[]>([]);
+  const [loading, setLoading]     = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm]         = useState(defaultForm);
-  const [saving, setSaving]     = useState(false);
-  const [error, setError]       = useState('');
+  const [form, setForm]           = useState(defaultForm);
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState('');
+
+  const [editTarget, setEditTarget] = useState<User | null>(null);
+  const [editForm, setEditForm]     = useState(defaultEditForm);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError]   = useState('');
 
   const loadUsers = async () => {
     setLoading(true);
@@ -56,6 +65,29 @@ export const UsersTab: React.FC = () => {
       body: JSON.stringify({ role })
     });
     if (res.ok) setUsers(u => u.map(x => x._id === id ? { ...x, role: role as any } : x));
+  };
+
+  const openEdit = (user: User) => {
+    setEditTarget(user);
+    setEditForm({ name: user.name, phone: user.phone || '', job: user.job || '', salary: user.salary || '', role: user.role });
+    setEditError('');
+  };
+
+  const handleEditSave = async () => {
+    if (!editTarget) return;
+    setEditSaving(true); setEditError('');
+    try {
+      const res = await fetch(`/api/admin/users/${editTarget._id}`, {
+        method: 'PUT',
+        headers: authHeader(),
+        body: JSON.stringify(editForm)
+      });
+      const data = await res.json();
+      if (!res.ok) { setEditError(data.message); return; }
+      setUsers(u => u.map(x => x._id === editTarget._id ? { ...x, ...editForm } : x));
+      setEditTarget(null);
+    } catch { setEditError('Không thể kết nối máy chủ.'); }
+    finally { setEditSaving(false); }
   };
 
   const handleDelete = async (user: User) => {
@@ -118,8 +150,9 @@ export const UsersTab: React.FC = () => {
                   <th className="px-8 py-5 text-left">Thành viên</th>
                   <th className="px-8 py-5 text-left">Vai trò</th>
                   <th className="px-8 py-5 text-left">Email & SĐT</th>
+                  <th className="px-8 py-5 text-left">Nghề nghiệp & Thu nhập</th>
                   <th className="px-8 py-5 text-left">Ngày tham gia</th>
-                  <th className="px-8 py-5 text-center">Xoá</th>
+                  <th className="px-8 py-5 text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
@@ -147,14 +180,24 @@ export const UsersTab: React.FC = () => {
                       <p className="text-sm font-bold text-on-surface">{user.email}</p>
                       <p className="text-xs text-on-surface-variant mt-0.5">{user.phone || '—'}</p>
                     </td>
+                    <td className="px-8 py-5">
+                      <p className="text-sm font-bold text-on-surface">{user.job || '—'}</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">{user.salary || '—'}</p>
+                    </td>
                     <td className="px-8 py-5 text-sm font-medium text-on-surface-variant">
                       {new Date(user.createdAt).toLocaleDateString('vi-VN')}
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <button onClick={() => handleDelete(user)}
-                        className="p-2 hover:bg-red-50 rounded-xl text-red-500 transition-colors" title="Xóa">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => openEdit(user)}
+                          className="p-2 hover:bg-blue-50 rounded-xl text-blue-600 transition-colors" title="Chỉnh sửa">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(user)}
+                          className="p-2 hover:bg-red-50 rounded-xl text-red-500 transition-colors" title="Xóa">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -168,6 +211,71 @@ export const UsersTab: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ── Edit User Modal ──────────────────────────────────────────────── */}
+      {editTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-[32px] w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center px-8 pt-7 pb-5 border-b border-outline-variant">
+              <div>
+                <h2 className="text-xl font-black text-on-surface">Chỉnh sửa người dùng</h2>
+                <p className="text-xs text-on-surface-variant mt-0.5">{editTarget.email}</p>
+              </div>
+              <button onClick={() => setEditTarget(null)}
+                className="p-2 hover:bg-surface-container rounded-xl transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-8 py-6 space-y-4">
+              {editError && (
+                <div className="p-3 bg-red-50 text-red-700 rounded-2xl text-sm font-semibold">{editError}</div>
+              )}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">Họ và tên</label>
+                <input className={inputCls} value={editForm.name}
+                  onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">Số điện thoại</label>
+                <input className={inputCls} value={editForm.phone}
+                  onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">Nghề nghiệp</label>
+                  <input className={inputCls} placeholder="Kỹ sư phần mềm..." value={editForm.job}
+                    onChange={e => setEditForm(f => ({ ...f, job: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">Thu nhập</label>
+                  <input className={inputCls} placeholder="10 - 20 triệu" value={editForm.salary}
+                    onChange={e => setEditForm(f => ({ ...f, salary: e.target.value }))} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">Vai trò</label>
+                <select className={inputCls} value={editForm.role}
+                  onChange={e => setEditForm(f => ({ ...f, role: e.target.value as User['role'] }))}>
+                  <option value="user">User</option>
+                  <option value="staff">Staff</option>
+                  <option value="manager">Manager</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setEditTarget(null)}
+                  className="flex-1 py-3 rounded-2xl border border-outline-variant font-bold text-on-surface-variant hover:bg-surface-container transition-all">
+                  Huỷ
+                </button>
+                <button onClick={handleEditSave} disabled={editSaving}
+                  className="flex-1 py-3 rounded-2xl bg-primary text-on-primary font-bold shadow-lg shadow-primary/20 disabled:opacity-50 transition-all">
+                  {editSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Add User Modal ───────────────────────────────────────────────── */}
       {showModal && (

@@ -18,7 +18,7 @@ const CATEGORIES = ['Thức ăn', 'Đồ chơi', 'Phụ kiện', 'Vệ sinh', 'K
 
 const defaultForm = {
   name: '', description: '', category: 'Thức ăn',
-  price: '', stock: '', rating: '5',
+  price: '', stock: '', rating: '5', soldCount: '0',
   isNew: false, imageUrl: ''
 };
 
@@ -65,6 +65,7 @@ export const ProductsTab: React.FC = () => {
     setForm({
       name: p.name, description: p.description, category: p.category,
       price: String(p.price), stock: String(p.stock), rating: String(p.rating),
+      soldCount: String(p.soldCount ?? 0),
       isNew: p.isNew, imageUrl: p.image?.startsWith('http') ? p.image : ''
     });
     setImagePreview(imgSrc(p.image));
@@ -92,6 +93,7 @@ export const ProductsTab: React.FC = () => {
     fd.append('price',       form.price);
     fd.append('stock',       form.stock || '0');
     fd.append('rating',      form.rating || '5');
+    fd.append('soldCount',    form.soldCount || '0');
     fd.append('isNew',       String(form.isNew));
     if (imageFile)        fd.append('image', imageFile);
     else if (form.imageUrl) fd.append('image', form.imageUrl);
@@ -283,6 +285,10 @@ export const ProductsTab: React.FC = () => {
                 <Field label="Đánh giá (1-5)">
                   <input className={inputCls} type="number" min="1" max="5" step="0.1" placeholder="4.8"
                     value={form.rating} onChange={e => setForm(f => ({ ...f, rating: e.target.value }))} />
+                </Field>
+                <Field label="Số lượng đã bán">
+                  <input className={inputCls} type="number" min="0" placeholder="0"
+                    value={form.soldCount} onChange={e => setForm(f => ({ ...f, soldCount: e.target.value }))} />
                 </Field>
                 <Field label="Trạng thái">
                   <label className="flex items-center gap-3 cursor-pointer h-[42px]">

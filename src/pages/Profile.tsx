@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
-import { Camera, User, Phone, MapPin, Briefcase, DollarSign, FileText, Save, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Camera, User, Phone, MapPin, Briefcase, DollarSign, FileText, Save, ArrowLeft, Loader2, CheckCircle, History } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
@@ -237,6 +237,12 @@ export const Profile: React.FC = () => {
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
             {loading ? 'Đang lưu...' : 'Lưu hồ sơ'}
           </button>
+
+          <Link to="/history"
+            className="w-full mt-2 py-3.5 rounded-[20px] border border-outline-variant font-bold text-sm text-on-surface-variant flex items-center justify-center gap-2 hover:bg-surface-container transition-all"
+          >
+            <History className="w-4 h-4" /> Xem lịch sử thanh toán & nhận nuôi
+          </Link>
         </motion.form>
       </div>
 
