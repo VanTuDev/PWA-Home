@@ -126,7 +126,7 @@ export const ApplyForm: React.FC = () => {
           'Authorization': `Bearer ${activeToken}`
         },
         body: JSON.stringify({
-          petId: id,
+          petId: pet?.id || pet?._id || id,
           ...formData
         })
       });
@@ -275,7 +275,7 @@ export const ApplyForm: React.FC = () => {
                       >
                         <option>Sinh viên</option>
                         <option>Đi làm</option>
-                        <option>Khác (Others)</option>
+                        <option>Khác</option>
                       </select>
                     </div>
                   </div>

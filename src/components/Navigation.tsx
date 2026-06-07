@@ -1,7 +1,15 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle } from 'lucide-react';
+import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
+const imgSrc = (img?: string) => {
+  if (!img) return '';
+  if (img.startsWith('http')) return img;
+  const path = img.startsWith('/') ? img : `/${img}`;
+  return `${BE_URL}${path}`;
+};
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
@@ -11,6 +19,7 @@ export const Navbar: React.FC = () => {
 
   const navItems = [
     { name: 'Nhận nuôi', path: '/', icon: PawPrint },
+    { name: 'Thú cưng', path: '/pets', icon: Heart },
     { name: 'Cộng đồng', path: '/community', icon: MessageSquare },
     { name: 'Cửa hàng', path: '/shop', icon: ShoppingBag },
     ...(isStaff ? [{ name: 'Quản trị', path: '/admin', icon: LayoutDashboard }] : []),
@@ -64,7 +73,7 @@ export const Navbar: React.FC = () => {
                 className="flex items-center gap-2 text-xs font-bold text-on-surface-variant bg-surface-container hover:bg-primary/10 hover:text-primary px-3 py-1.5 rounded-full border border-outline-variant/30 transition-all"
               >
                 {user.avatar
-                  ? <img src={user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                  ? <img src={imgSrc(user.avatar)} alt="" className="w-5 h-5 rounded-full object-cover" />
                   : <UserCircle className="w-4 h-4" />
                 }
                 <span className="hidden lg:inline">{user.name.split(' ')[0]}</span>

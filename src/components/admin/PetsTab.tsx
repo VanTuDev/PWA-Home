@@ -34,8 +34,13 @@ const STATUS_STYLE = {
 const STATUS_LABEL = { Ready: 'Sẵn sàng', Treatment: 'Điều trị', Adopted: 'Đã nhận' };
 
 const getToken = () => localStorage.getItem('paw_token') || '';
-const imgSrc = (img: string) =>
-  img?.startsWith('/uploads') ? `http://localhost:5000${img}` : img;
+const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
+const imgSrc = (img: string) => {
+  if (!img) return '';
+  if (img.startsWith('http')) return img;
+  const path = img.startsWith('/') ? img : `/${img}`;
+  return `${BE_URL}${path}`;
+};
 
 export const PetsTab: React.FC = () => {
   const [pets, setPets]               = useState<Pet[]>([]);

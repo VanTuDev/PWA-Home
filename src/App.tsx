@@ -10,6 +10,7 @@ import { Home } from './pages/Home';
 import { PetDetail } from './pages/PetDetail';
 import { ApplyForm } from './pages/ApplyForm';
 import { Shop } from './pages/Shop';
+import { Pets } from './pages/Pets';
 import { Community } from './pages/Community';
 import { Auth } from './pages/Auth';
 import { AdminLogin } from './pages/AdminLogin';
@@ -56,6 +57,7 @@ const AppContent = () => {
             <Route path="/" element={<Home />} />
             <Route path="/pet/:id" element={<PetDetail />} />
             <Route path="/apply/:id" element={<ApplyForm />} />
+            <Route path="/pets" element={<Pets />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/community" element={<Community />} />
             <Route path="/login" element={<Auth />} />

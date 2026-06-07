@@ -82,7 +82,12 @@ const QUESTIONS: Question[] = [
 ];
 
 const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
-const imgSrc = (img: string) => img?.startsWith('/uploads') ? `${BE_URL}${img}` : img;
+const imgSrc = (img: string) => {
+  if (!img) return '';
+  if (img.startsWith('http')) return img;
+  const path = img.startsWith('/') ? img : `/${img}`;
+  return `${BE_URL}${path}`;
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export const Survey: React.FC = () => {

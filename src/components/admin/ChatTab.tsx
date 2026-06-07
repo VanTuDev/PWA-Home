@@ -3,6 +3,14 @@ import { MessageCircle, Send, Loader2, RefreshCw, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { connectSocket } from '../../lib/socket';
 
+const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
+const imgSrc = (img?: string) => {
+  if (!img) return '';
+  if (img.startsWith('http')) return img;
+  const path = img.startsWith('/') ? img : `/${img}`;
+  return `${BE_URL}${path}`;
+};
+
 interface Room {
   userId:   string;
   user:     { name: string; email: string; avatar?: string };
@@ -144,7 +152,7 @@ export const ChatTab: React.FC = () => {
                 className={`w-full px-4 py-3.5 flex items-center gap-3 hover:bg-surface-container-low transition-colors text-left border-b border-outline-variant/30 ${selected?.userId === room.userId ? 'bg-primary/5' : ''}`}>
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black flex-shrink-0">
                   {room.user?.avatar
-                    ? <img src={room.user.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                    ? <img src={imgSrc(room.user.avatar)} alt="" className="w-full h-full rounded-full object-cover" />
                     : <User className="w-5 h-5" />
                   }
                 </div>

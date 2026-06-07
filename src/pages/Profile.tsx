@@ -4,6 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { Camera, User, Phone, MapPin, Briefcase, DollarSign, FileText, Save, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
+const imgSrc = (img?: string) => {
+  if (!img) return '';
+  if (img.startsWith('http')) return img;
+  const path = img.startsWith('/') ? img : `/${img}`;
+  return `${BE_URL}${path}`;
+};
+
 const AVATAR_PLACEHOLDER = 'https://placehold.co/120x120/f5f0eb/553722?text=👤';
 const COVER_PLACEHOLDER  = 'https://placehold.co/1200x300/553722/ffffff?text=PAW+Home';
 
@@ -20,8 +28,8 @@ export const Profile: React.FC = () => {
     bio:     user?.bio     ?? '',
   });
 
-  const [avatarPreview,    setAvatarPreview]    = useState(user?.avatar     || '');
-  const [coverPreview,     setCoverPreview]     = useState(user?.coverPhoto || '');
+  const [avatarPreview,    setAvatarPreview]    = useState(imgSrc(user?.avatar)     || '');
+  const [coverPreview,     setCoverPreview]     = useState(imgSrc(user?.coverPhoto) || '');
   const [avatarFile,       setAvatarFile]       = useState<File | null>(null);
   const [coverFile,        setCoverFile]        = useState<File | null>(null);
 
@@ -69,6 +77,10 @@ export const Profile: React.FC = () => {
       if (!res.ok) { setError(data.message); return; }
 
       updateUser(data.user);
+      if (data.user.avatar)     setAvatarPreview(imgSrc(data.user.avatar));
+      if (data.user.coverPhoto) setCoverPreview(imgSrc(data.user.coverPhoto));
+      setAvatarFile(null);
+      setCoverFile(null);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {
