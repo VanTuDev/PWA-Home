@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, X, Upload } from 'lucide-react';
+import { NumberInput } from '../NumberInput';
 
 interface Pet {
   _id: string;
@@ -382,10 +383,9 @@ export const PetsTab: React.FC = () => {
 
               <Field label="Đóng góp bắt buộc trước nhận nuôi (VNĐ)">
                 <div className="flex items-center gap-3">
-                  <input type="number" min="0" step="10000" className={`${inputCls} flex-1`}
-                    placeholder="0 = không yêu cầu"
-                    value={form.donationAmount || ''}
-                    onChange={e => setForm(f => ({ ...f, donationAmount: Number(e.target.value) || 0 }))} />
+                  <NumberInput min={0} step={10000} placeholder="0 = không yêu cầu"
+                    value={String(form.donationAmount || 0)}
+                    onChange={v => setForm(f => ({ ...f, donationAmount: Number(v) || 0 }))} />
                   <span className="text-xs text-on-surface-variant font-bold whitespace-nowrap">VNĐ</span>
                 </div>
                 <p className="text-[10px] text-on-surface-variant mt-1">Để 0 nếu không yêu cầu đóng góp trước khi nhận nuôi.</p>

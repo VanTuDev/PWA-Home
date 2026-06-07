@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, X, Upload, Star } from 'lucide-react';
+import { NumberInput } from '../NumberInput';
 
 interface Product {
   _id: string;
@@ -275,20 +276,20 @@ export const ProductsTab: React.FC = () => {
                   </select>
                 </Field>
                 <Field label="Giá bán (đ) *">
-                  <input className={inputCls} type="number" min="0" placeholder="150000"
-                    value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
+                  <NumberInput min={0} step={1000} placeholder="150000"
+                    value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} />
                 </Field>
                 <Field label="Tồn kho">
-                  <input className={inputCls} type="number" min="0" placeholder="100"
-                    value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} />
+                  <NumberInput min={0} step={1} placeholder="100"
+                    value={form.stock} onChange={v => setForm(f => ({ ...f, stock: v }))} />
                 </Field>
                 <Field label="Đánh giá (1-5)">
-                  <input className={inputCls} type="number" min="1" max="5" step="0.1" placeholder="4.8"
-                    value={form.rating} onChange={e => setForm(f => ({ ...f, rating: e.target.value }))} />
+                  <NumberInput min={1} max={5} step={0.1} placeholder="4.8"
+                    value={form.rating} onChange={v => setForm(f => ({ ...f, rating: v }))} />
                 </Field>
                 <Field label="Số lượng đã bán">
-                  <input className={inputCls} type="number" min="0" placeholder="0"
-                    value={form.soldCount} onChange={e => setForm(f => ({ ...f, soldCount: e.target.value }))} />
+                  <NumberInput min={0} step={1} placeholder="0"
+                    value={form.soldCount} onChange={v => setForm(f => ({ ...f, soldCount: v }))} />
                 </Field>
                 <Field label="Trạng thái">
                   <label className="flex items-center gap-3 cursor-pointer h-[42px]">
