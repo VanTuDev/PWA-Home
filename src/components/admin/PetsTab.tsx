@@ -14,6 +14,7 @@ interface Pet {
   tags: string[];
   story: string;
   healthInfo: { vaccinated: boolean; neutered: boolean; microchipped: boolean };
+  donationAmount?: number;
 }
 
 const defaultForm = {
@@ -21,7 +22,8 @@ const defaultForm = {
   description: '', rescuePartner: '', story: '',
   status: 'Ready' as 'Ready' | 'Treatment' | 'Adopted',
   tags: '', imageUrl: '',
-  vaccinated: false, neutered: false, microchipped: false
+  vaccinated: false, neutered: false, microchipped: false,
+  donationAmount: 0
 };
 
 const STATUS_STYLE = {
@@ -75,6 +77,7 @@ export const PetsTab: React.FC = () => {
       story: pet.story || '', status: pet.status,
       tags: (pet.tags || []).join(', '),
       imageUrl: pet.image?.startsWith('http') ? pet.image : '',
+      donationAmount: pet.donationAmount || 0,
       vaccinated:   pet.healthInfo?.vaccinated   || false,
       neutered:     pet.healthInfo?.neutered     || false,
       microchipped: pet.healthInfo?.microchipped || false
@@ -114,9 +117,10 @@ export const PetsTab: React.FC = () => {
     fd.append('tags', JSON.stringify(
       form.tags.split(',').map(t => t.trim()).filter(Boolean)
     ));
-    fd.append('vaccinated',   String(form.vaccinated));
-    fd.append('neutered',     String(form.neutered));
-    fd.append('microchipped', String(form.microchipped));
+    fd.append('vaccinated',     String(form.vaccinated));
+    fd.append('neutered',       String(form.neutered));
+    fd.append('microchipped',   String(form.microchipped));
+    fd.append('donationAmount', String(form.donationAmount || 0));
     if (imageFile) fd.append('image', imageFile);
     else if (form.imageUrl) fd.append('image', form.imageUrl);
 
@@ -184,6 +188,7 @@ export const PetsTab: React.FC = () => {
                   <th className="px-6 py-5 text-left">Giống / Tuổi</th>
                   <th className="px-6 py-5 text-left">Trạng thái</th>
                   <th className="px-6 py-5 text-left">Sức khoẻ</th>
+                  <th className="px-6 py-5 text-left">Đóng góp</th>
                   <th className="px-6 py-5 text-center">Thao tác</th>
                 </tr>
               </thead>
@@ -230,6 +235,15 @@ export const PetsTab: React.FC = () => {
                           </span>
                         ))}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {pet.donationAmount ? (
+                        <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
+                          {pet.donationAmount.toLocaleString('vi-VN')}đ
+                        </span>
+                      ) : (
+                        <span className="text-xs text-on-surface-variant opacity-40">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
@@ -359,6 +373,17 @@ export const PetsTab: React.FC = () => {
               <Field label="Tags (phân cách bằng dấu phẩy)">
                 <input className={inputCls} placeholder="Thân thiện, Năng động, Đã tiêm phòng"
                   value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} />
+              </Field>
+
+              <Field label="Đóng góp bắt buộc trước nhận nuôi (VNĐ)">
+                <div className="flex items-center gap-3">
+                  <input type="number" min="0" step="10000" className={`${inputCls} flex-1`}
+                    placeholder="0 = không yêu cầu"
+                    value={form.donationAmount || ''}
+                    onChange={e => setForm(f => ({ ...f, donationAmount: Number(e.target.value) || 0 }))} />
+                  <span className="text-xs text-on-surface-variant font-bold whitespace-nowrap">VNĐ</span>
+                </div>
+                <p className="text-[10px] text-on-surface-variant mt-1">Để 0 nếu không yêu cầu đóng góp trước khi nhận nuôi.</p>
               </Field>
 
               <Field label="Sức khoẻ">

@@ -8,6 +8,7 @@ import { PetsTab } from '../components/admin/PetsTab';
 import { ProductsTab } from '../components/admin/ProductsTab';
 import { OrdersTab } from '../components/admin/OrdersTab';
 import { ApplicationsTab } from '../components/admin/ApplicationsTab';
+import { ChatTab } from '../components/admin/ChatTab';
 
 export const AdminDashboard: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -20,6 +21,7 @@ export const AdminDashboard: React.FC = () => {
       case 'products':     return <ProductsTab />;
       case 'orders':       return <OrdersTab />;
       case 'applications': return <ApplicationsTab />;
+      case 'chat':         return <ChatTab />;
       case 'users':        return isAdmin ? <UsersTab /> : <Restricted />;
       default:
         return (

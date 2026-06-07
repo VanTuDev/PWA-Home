@@ -24,6 +24,7 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { ChangePassword } from './pages/ChangePassword';
 import { AIChatBot } from './components/AIChatBot';
+import { Profile } from './pages/Profile';
 
 // Ping BE ngay khi app load để wake up Render free tier trước khi user action
 fetch('/api/').catch(() => {});
@@ -68,6 +69,11 @@ const AppContent = () => {
             <Route path="/change-password"  element={
               <ProtectedRoute allowedRoles={['admin','manager','staff','user']}>
                 <ChangePassword />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute allowedRoles={['admin','manager','staff','user']}>
+                <Profile />
               </ProtectedRoute>
             } />
             <Route 

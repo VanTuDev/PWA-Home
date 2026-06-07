@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut } from 'lucide-react';
+import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Navbar: React.FC = () => {
@@ -58,11 +58,18 @@ export const Navbar: React.FC = () => {
           </button>
           
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="hidden lg:inline text-xs font-bold text-on-surface-variant bg-surface-container px-3 py-1.5 rounded-full border border-outline-variant/30">
-                Chào, {user.name.split(' ')[0]}
-              </span>
-              <button 
+            <div className="flex items-center gap-2">
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 text-xs font-bold text-on-surface-variant bg-surface-container hover:bg-primary/10 hover:text-primary px-3 py-1.5 rounded-full border border-outline-variant/30 transition-all"
+              >
+                {user.avatar
+                  ? <img src={user.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                  : <UserCircle className="w-4 h-4" />
+                }
+                <span className="hidden lg:inline">{user.name.split(' ')[0]}</span>
+              </Link>
+              <button
                 onClick={handleLogout}
                 title="Đăng xuất"
                 className="p-2.5 text-on-surface-variant hover:text-error hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100 cursor-pointer"

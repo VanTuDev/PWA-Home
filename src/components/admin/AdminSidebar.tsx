@@ -1,5 +1,5 @@
 import React from 'react';
-import { PawPrint, LayoutDashboard, ClipboardList, Users, Settings, Sparkles, ShoppingBag, PackageCheck } from 'lucide-react';
+import { PawPrint, LayoutDashboard, ClipboardList, Users, Settings, Sparkles, ShoppingBag, PackageCheck, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface AdminSidebarProps {
@@ -20,7 +20,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'products',  label: 'Sản phẩm Shop',     icon: ShoppingBag     },
     { id: 'orders',    label: 'Đơn hàng',          icon: PackageCheck    },
     { id: 'applications', label: 'Đơn nhận nuôi', icon: ClipboardList   },
-    { id: 'workflows', label: 'Quy trình AI',      icon: Sparkles        },
+    { id: 'chat',      label: 'Chat hỗ trợ',       icon: MessageCircle   },
+    { id: 'workflows', label: 'Quy trình AI',       icon: Sparkles        },
     ...(isAdmin ? [{ id: 'users', label: 'Nhân sự', icon: Users }] : []),
     { id: 'settings',  label: 'Cài đặt',           icon: Settings        },
   ];

@@ -137,7 +137,7 @@ export const OrdersTab: React.FC = () => {
 
                       {/* Payment */}
                       <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0 ${ps.color}`}>
-                        {ps.label} · {order.paymentMethod === 'online' ? 'VNPay' : 'COD'}
+                        {ps.label} · {order.paymentMethod === 'online' ? 'PayOS' : 'COD'}
                       </span>
 
                       {/* Order status dropdown */}

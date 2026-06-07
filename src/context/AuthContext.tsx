@@ -6,6 +6,12 @@ export interface UserSession {
   email: string;
   phone?: string;
   role: 'admin' | 'manager' | 'staff' | 'user';
+  address?: string;
+  job?: string;
+  salary?: string;
+  bio?: string;
+  avatar?: string;
+  coverPhoto?: string;
   createdAt: string;
 }
 
@@ -15,6 +21,7 @@ interface AuthContextType {
   loading: boolean;
   login: (user: UserSession, token?: string) => void;
   logout: () => void;
+  updateUser: (partial: Partial<UserSession>) => void;
   isAdmin: boolean;
   isManager: boolean;
   isStaff: boolean;
@@ -54,6 +61,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUser = (partial: Partial<UserSession>) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...partial };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -68,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       login,
       logout,
+      updateUser,
       isAdmin: user?.role === 'admin',
       isManager: user?.role === 'manager',
       isStaff: user?.role === 'staff',

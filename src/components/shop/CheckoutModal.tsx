@@ -182,10 +182,10 @@ export const CheckoutModal: React.FC<Props> = ({ product, onClose }) => {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-bold text-sm text-on-surface">Thanh toán VNPay / QR Code</p>
+                      <p className="font-bold text-sm text-on-surface">Thanh toán PayOS / VietQR</p>
                       <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full">-10%</span>
                     </div>
-                    <p className="text-xs text-on-surface-variant">Quét mã QR, thẻ ATM/Visa — giảm ngay 10%</p>
+                    <p className="text-xs text-on-surface-variant">Quét mã QR VietQR, chuyển khoản — giảm ngay 10%</p>
                   </div>
                   {method === 'online' && <div className="ml-auto w-5 h-5 rounded-full bg-primary flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-white" /></div>}
                 </button>
@@ -232,7 +232,7 @@ export const CheckoutModal: React.FC<Props> = ({ product, onClose }) => {
               </button>
               <button onClick={handleSubmit} disabled={loading}
                 className="flex-[2] py-4 bg-primary text-on-primary rounded-2xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50">
-                {loading ? 'Đang xử lý...' : method === 'online' ? 'Thanh toán VNPay →' : 'Đặt hàng ngay'}
+                {loading ? 'Đang xử lý...' : method === 'online' ? 'Thanh toán PayOS →' : 'Đặt hàng ngay'}
               </button>
             </div>
           )}
