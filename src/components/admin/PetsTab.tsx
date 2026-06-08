@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, X, Upload } from 'lucide-react';
-import { NumberInput } from '../NumberInput';
 
 interface Pet {
   _id: string;
@@ -127,8 +126,14 @@ export const PetsTab: React.FC = () => {
     fd.append('neutered',       String(form.neutered));
     fd.append('microchipped',   String(form.microchipped));
     fd.append('donationAmount', String(form.donationAmount || 0));
-    if (imageFile) fd.append('image', imageFile);
-    else if (form.imageUrl) fd.append('image', form.imageUrl);
+    if (imageFile) {
+      // File từ máy — multer sẽ xử lý
+      fd.append('image', imageFile);
+    } else if (form.imageUrl) {
+      // URL http — gửi lên như text field
+      fd.append('image', form.imageUrl);
+    }
+    // Không có ảnh mới → BE tự giữ nguyên ảnh cũ trong DB
 
     try {
       const url    = editing ? `/api/pets/${editing._id}` : '/api/pets';
@@ -300,33 +305,57 @@ export const PetsTab: React.FC = () => {
               {/* Image Upload */}
               <Field label="Ảnh thú cưng *">
                 <div className="flex gap-4 items-start">
+                  {/* Preview */}
                   {imagePreview && (
-                    <img src={imagePreview} alt="preview"
-                      className="w-20 h-20 object-cover rounded-2xl shadow-sm flex-shrink-0"
-                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
+                    <div className="relative flex-shrink-0">
+                      <img src={imagePreview} alt="preview"
+                        className="w-20 h-20 object-cover rounded-2xl shadow-sm"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <button type="button"
+                        onClick={() => { setImageFile(null); setImagePreview(''); setForm(f => ({ ...f, imageUrl: '' })); }}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   )}
                   <div className="flex-1 space-y-2">
+                    {/* File từ máy */}
                     <button type="button" onClick={() => fileRef.current?.click()}
-                      className="w-full border-2 border-dashed border-outline-variant rounded-2xl py-3 px-4 text-sm font-bold text-on-surface-variant hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2">
-                      <Upload className="w-4 h-4" /> Tải ảnh từ máy tính
+                      className={`w-full border-2 border-dashed rounded-2xl py-3 px-4 text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                        imageFile
+                          ? 'border-green-400 bg-green-50 text-green-700'
+                          : 'border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
+                      }`}>
+                      <Upload className="w-4 h-4" />
+                      {imageFile ? `✓ ${imageFile.name}` : 'Chọn ảnh từ máy tính'}
                     </button>
                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+                    {/* Separator */}
                     <div className="flex items-center gap-2">
                       <div className="h-px bg-outline-variant flex-1" />
-                      <span className="text-xs text-on-surface-variant font-medium">hoặc URL</span>
+                      <span className="text-xs text-on-surface-variant font-medium">hoặc nhập URL</span>
                       <div className="h-px bg-outline-variant flex-1" />
                     </div>
+                    {/* URL */}
                     <input type="text" placeholder="https://example.com/image.jpg"
                       className={inputCls}
                       value={form.imageUrl}
                       onChange={e => {
-                        setForm(f => ({ ...f, imageUrl: e.target.value }));
-                        if (e.target.value) { setImagePreview(e.target.value); setImageFile(null); }
+                        const v = e.target.value;
+                        setForm(f => ({ ...f, imageUrl: v }));
+                        if (v) { setImagePreview(v); setImageFile(null); }
+                        else if (!imageFile) setImagePreview('');
                       }}
                     />
                   </div>
                 </div>
+                {/* Hint khi edit mà đã có ảnh */}
+                {editing?.image && !imageFile && !form.imageUrl && (
+                  <p className="text-[10px] text-on-surface-variant mt-1.5">
+                    Đang dùng ảnh hiện tại. Chọn file mới hoặc nhập URL để thay ảnh.
+                  </p>
+                )}
               </Field>
 
               {/* 2-col fields */}
@@ -382,13 +411,18 @@ export const PetsTab: React.FC = () => {
               </Field>
 
               <Field label="Đóng góp bắt buộc trước nhận nuôi (VNĐ)">
-                <div className="flex items-center gap-3">
-                  <NumberInput min={0} step={10000} placeholder="0 = không yêu cầu"
-                    value={String(form.donationAmount || 0)}
-                    onChange={v => setForm(f => ({ ...f, donationAmount: Number(v) || 0 }))} />
-                  <span className="text-xs text-on-surface-variant font-bold whitespace-nowrap">VNĐ</span>
-                </div>
-                <p className="text-[10px] text-on-surface-variant mt-1">Để 0 nếu không yêu cầu đóng góp trước khi nhận nuôi.</p>
+                <input
+                  className={inputCls}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0 = không yêu cầu"
+                  value={form.donationAmount === 0 ? '' : String(form.donationAmount)}
+                  onChange={e => {
+                    const v = e.target.value.replace(/\D/g, '');
+                    setForm(f => ({ ...f, donationAmount: v === '' ? 0 : Number(v) }));
+                  }}
+                />
+                <p className="text-[10px] text-on-surface-variant mt-1">Để trống hoặc 0 nếu không yêu cầu đóng góp trước khi nhận nuôi.</p>
               </Field>
 
               <Field label="Sức khoẻ">
