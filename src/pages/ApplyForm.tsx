@@ -7,6 +7,7 @@ import {
   Building, UserCheck, Gift, Loader2, AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from '../utils/toast';
 
 const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
 const imgSrc = (img: string) => {
@@ -82,7 +83,7 @@ export const ApplyForm: React.FC = () => {
       const data = await res.json();
       if (!res.ok) { setDonateError(data.message); return; }
       if (data.alreadyDonated) { setDonated(true); return; }
-      if (data.checkoutUrl) window.location.href = data.checkoutUrl;
+      if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank', 'noopener,noreferrer');
     } catch { setDonateError('Không thể kết nối máy chủ.'); }
     finally { setDonating(false); }
   };
@@ -111,17 +112,17 @@ export const ApplyForm: React.FC = () => {
 
   const nextStep = () => {
     if (step === 1 && (!formData.fullName || !formData.phone)) {
-      alert('Vui lòng điền Họ tên và Số điện thoại liên hệ.'); return;
+      toast.warning('Vui lòng điền Họ tên và Số điện thoại liên hệ.'); return;
     }
     if (step === 2 && (!formData.idCardFront || !formData.idCardBack)) {
-      alert('Vui lòng tải lên cả hai mặt CMND/CCCD.'); return;
+      toast.warning('Vui lòng tải lên cả hai mặt CMND/CCCD.'); return;
     }
     step < totalSteps && setStep(step + 1);
   };
   const prevStep = () => step > 1 && setStep(step - 1);
 
   const handleSubmit = async () => {
-    if (!formData.address) { alert('Vui lòng cung cấp địa chỉ sinh sống.'); return; }
+    if (!formData.address) { toast.warning('Vui lòng cung cấp địa chỉ sinh sống.'); return; }
     setSubmitting(true); setError('');
     try {
       const res = await fetch('/api/adoptions', {
@@ -130,7 +131,7 @@ export const ApplyForm: React.FC = () => {
         body: JSON.stringify({ petId: pet?.id || pet?._id || id, ...formData }),
       });
       const data = await res.json();
-      if (res.ok) { alert('Đơn đăng ký đã được gửi thành công! Admin sẽ sớm liên hệ với bạn.'); navigate('/'); }
+      if (res.ok) { toast.success('Đơn đăng ký đã được gửi thành công! Admin sẽ sớm liên hệ với bạn.'); navigate('/'); }
       else setError(data.message || 'Lỗi gửi đơn nhận nuôi.');
     } catch { setError('Không thể kết nối máy chủ. Vui lòng thử lại sau.'); }
     finally { setSubmitting(false); }

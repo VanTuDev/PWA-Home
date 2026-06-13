@@ -73,7 +73,7 @@ export const PetDetail: React.FC = () => {
       const data = await res.json();
       if (!res.ok) { setDonationError(data.message); return; }
       if (data.alreadyDonated) { setDonated(true); setShowModal(false); return; }
-      if (data.checkoutUrl) window.location.href = data.checkoutUrl;
+      if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank', 'noopener,noreferrer');
     } catch {
       setDonationError('Không thể kết nối máy chủ.');
     } finally {
@@ -158,10 +158,10 @@ export const PetDetail: React.FC = () => {
           Quay lại danh sách
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
           {/* ── Main ──────────────────────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="rounded-[32px] overflow-hidden h-[400px] md:h-[480px]">
+            <div className="rounded-[32px] overflow-hidden h-[260px] sm:h-[360px] md:h-[480px]">
               <img src={imgSrc(pet.image)} alt={pet.name} className="w-full h-full object-cover"
                 onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/800x500/f5f0eb/553722?text=🐾'; }} />
             </div>
@@ -221,7 +221,7 @@ export const PetDetail: React.FC = () => {
 
           {/* ── Sidebar ────────────────────────────────────────────────── */}
           <div>
-            <div className="sticky top-24 space-y-6">
+            <div className="lg:sticky lg:top-24 space-y-6">
               <div className="bg-white rounded-[32px] border border-outline-variant p-8 shadow-sm space-y-6">
                 <div>
                   <h1 className="text-4xl font-black text-on-surface mb-1">{pet.name}</h1>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, X, Edit2 } from 'lucide-react';
+import { toast } from '../../utils/toast';
+import { confirm } from '../ConfirmDialog';
 
 interface User {
   _id: string;
@@ -91,13 +93,14 @@ export const UsersTab: React.FC = () => {
   };
 
   const handleDelete = async (user: User) => {
-    if (!window.confirm(`Xóa người dùng "${user.name}"?`)) return;
+    const ok = await confirm({ message: `Xóa người dùng "${user.name}"?`, danger: true, confirmText: 'Xóa' });
+    if (!ok) return;
     const res = await fetch(`/api/admin/users/${user._id}`, {
       method: 'DELETE',
       headers: authHeader()
     });
     if (res.ok) setUsers(u => u.filter(x => x._id !== user._id));
-    else { const d = await res.json(); alert(d.message); }
+    else { const d = await res.json(); toast.error(d.message); }
   };
 
   const handleCreate = async () => {
@@ -127,7 +130,7 @@ export const UsersTab: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-on-surface tracking-tighter">Quản lý người dùng</h1>
+          <h1 className="text-xl sm:text-3xl font-black text-on-surface tracking-tighter">Quản lý người dùng</h1>
           <p className="text-sm text-on-surface-variant font-medium mt-1">
             {loading ? '...' : `${users.length} tài khoản trong hệ thống`}
           </p>

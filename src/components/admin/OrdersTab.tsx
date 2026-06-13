@@ -73,7 +73,7 @@ export const OrdersTab: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-black text-on-surface tracking-tighter">Đơn hàng</h1>
+            <h1 className="text-xl sm:text-3xl font-black text-on-surface tracking-tighter">Đơn hàng</h1>
             {pending > 0 && (
               <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-black rounded-full animate-pulse">
                 {pending} chờ duyệt

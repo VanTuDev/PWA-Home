@@ -10,18 +10,28 @@ export const PaymentResult: React.FC = () => {
   const type      = params.get('type');     // 'donation' | null (shop order)
   const petId     = params.get('petId');
   const isDonation = type === 'donation';
-  const [countdown, setCountdown] = useState(isDonation ? 0 : 8); // donation không auto-redirect
+  const isPopup = typeof window !== 'undefined' && !!window.opener;
+  const [countdown, setCountdown] = useState(isPopup && status === 'success' ? 4 : isDonation ? 0 : 8);
 
   useEffect(() => {
-    if (isDonation || !countdown) return; // donation không auto-redirect
+    if (isDonation && !isPopup) return;
+    if (!countdown) return;
     const t = setInterval(() => {
       setCountdown(c => {
-        if (c <= 1) { clearInterval(t); window.location.href = '/'; }
+        if (c <= 1) {
+          clearInterval(t);
+          if (isPopup) {
+            try { window.opener.location.reload(); } catch {}
+            window.close();
+          } else {
+            window.location.href = '/';
+          }
+        }
         return c - 1;
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [isDonation]);
+  }, [isDonation, isPopup]);
 
   // Config cho shop order
   const shopConfig = {
@@ -93,10 +103,19 @@ export const PaymentResult: React.FC = () => {
           )}
         </div>
 
-        {!isDonation && countdown > 0 && (
+        {countdown > 0 && (
           <p className="mt-6 text-xs text-on-surface-variant font-medium">
-            Tự động chuyển về trang chủ sau <span className="font-black text-primary">{countdown}s</span>
+            {isPopup
+              ? <>Tab này sẽ tự đóng sau <span className="font-black text-primary">{countdown}s</span></>
+              : <>Tự động chuyển về trang chủ sau <span className="font-black text-primary">{countdown}s</span></>
+            }
           </p>
+        )}
+        {isPopup && (
+          <button onClick={() => { try { window.opener?.location.reload(); } catch {} window.close(); }}
+            className="mt-4 text-xs font-bold text-primary hover:underline">
+            Đóng tab ngay
+          </button>
         )}
       </motion.div>
     </div>

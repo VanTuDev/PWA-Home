@@ -36,7 +36,7 @@ export const Home: React.FC = () => {
         </div>
 
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop relative z-10 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center">
             <motion.div 
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -47,7 +47,7 @@ export const Home: React.FC = () => {
                 <span className="uppercase tracking-widest">Hệ thống cứu hộ thông minh</span>
               </div>
               
-              <h1 className="text-6xl md:text-8xl font-black text-primary mb-8 leading-[1.05] tracking-tighter">
+              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-primary mb-6 md:mb-8 leading-[1.05] tracking-tighter">
                 Nơi tình yêu <br /> 
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-secondary">tìm thấy tổ ấm</span>
               </h1>
@@ -56,12 +56,12 @@ export const Home: React.FC = () => {
                 Chúng tôi kết nối những trái tim nhân hậu với những người bạn nhỏ đang chờ đợi một cơ hội thứ hai. Trải nghiệm hành trình nhận nuôi đầy cảm hứng.
               </p>
               
-              <div className="flex flex-wrap gap-6">
-                <Link to="/survey" className="bg-primary text-on-primary px-10 py-5 rounded-[24px] font-bold flex items-center gap-3 hover:bg-primary-container transition-all hover:scale-105 shadow-xl shadow-primary/20 group">
+              <div className="flex flex-wrap gap-3 md:gap-6">
+                <Link to="/survey" className="bg-primary text-on-primary px-6 md:px-10 py-4 md:py-5 rounded-[24px] font-bold flex items-center gap-3 hover:bg-primary-container transition-all hover:scale-105 shadow-xl shadow-primary/20 group text-sm md:text-base">
                   Khám phá độ tương thích
-                  <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                  <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />
                 </Link>
-                <button className="bg-white text-primary border border-outline-variant px-10 py-5 rounded-[24px] font-bold hover:bg-surface-container-low transition-all hover:border-primary/30">
+                <button className="bg-white text-primary border border-outline-variant px-6 md:px-10 py-4 md:py-5 rounded-[24px] font-bold hover:bg-surface-container-low transition-all hover:border-primary/30 text-sm md:text-base">
                   Tìm hiểu thêm
                 </button>
               </div>
@@ -117,59 +117,55 @@ export const Home: React.FC = () => {
             {marqueePets.map((pet, index) => (
               <div
                 key={`${pet.id}-${index}`}
-                className="w-[350px] flex-shrink-0 group cursor-pointer"
+                className="w-[300px] flex-shrink-0 group cursor-pointer"
               >
-                <div className="bg-surface-container-low rounded-[48px] border border-outline-variant p-4 transition-all duration-500 group-hover:shadow-2xl group-hover:translate-y-[-12px] group-hover:bg-white group-hover:border-primary/20">
-                  <div className="relative h-72 rounded-[40px] overflow-hidden mb-6">
-                    <img 
-                      src={pet.image} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                      alt={pet.name} 
+                <div className="rounded-[32px] overflow-hidden border border-outline-variant/60 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 bg-white">
+                  {/* Image with overlay */}
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={pet.image}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      alt={pet.name}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${
-                        pet.status === 'Ready' ? 'bg-status-ready' : 'bg-status-treatment'
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+
+                    {/* Status */}
+                    <div className="absolute top-3 left-3">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-lg ${
+                        pet.status === 'Ready' ? 'bg-emerald-500' : 'bg-amber-500'
                       }`}>
-                        {pet.status === 'Ready' ? 'Sẵn sàng' : 'Đang điều trị'}
-                      </div>
+                        {pet.status === 'Ready' ? 'Sẵn sàng' : 'Điều trị'}
+                      </span>
                     </div>
-                    
-                    <button className="absolute top-4 right-4 p-3 glass-morphism rounded-full text-primary hover:bg-primary hover:text-white transition-all">
-                      <Heart className="w-5 h-5" />
+                    <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/25 backdrop-blur-md text-white hover:bg-red-500 transition-all flex items-center justify-center">
+                      <Heart className="w-4 h-4" />
                     </button>
+
+                    {/* Name overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-white font-black text-xl leading-tight truncate group-hover:text-yellow-200 transition-colors">{pet.name}</h3>
+                      <p className="text-white/70 text-xs font-semibold">{pet.breed} · {pet.age}</p>
+                    </div>
                   </div>
 
-                  <div className="px-4 pb-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-2xl font-black text-on-surface group-hover:text-primary transition-colors">{pet.name}</h3>
-                        <p className="text-sm font-bold text-on-surface-variant flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {pet.rescuePartner}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-black text-primary">{pet.breed}</p>
-                        <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">{pet.age} • {pet.gender}</p>
-                      </div>
+                  {/* Bottom info */}
+                  <div className="p-4">
+                    <div className="flex items-center gap-1 mb-3 text-on-surface-variant">
+                      <MapPin className="w-3 h-3" />
+                      <span className="text-[10px] font-medium truncate">{pet.rescuePartner}</span>
                     </div>
-
-                    <div className="flex gap-2">
-                      {pet.status === 'Ready' ? (
-                        <Link 
-                          to={`/apply/${pet.id}`} 
-                          className="w-full bg-primary text-on-primary py-4 rounded-3xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary-container transition-all"
-                        >
-                          Nhận nuôi ngay
-                        </Link>
-                      ) : (
-                        <button className="w-full bg-tertiary text-on-tertiary py-4 rounded-3xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-tertiary-container transition-all">
-                          Ủng hộ điều trị
-                        </button>
-                      )}
-                    </div>
+                    {pet.status === 'Ready' ? (
+                      <Link
+                        to={`/apply/${pet.id}`}
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-emerald-200 transition-all"
+                      >
+                        Nhận nuôi ngay <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    ) : (
+                      <button className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3 rounded-2xl font-bold text-sm hover:shadow-lg hover:shadow-amber-200 transition-all">
+                        Ủng hộ điều trị
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

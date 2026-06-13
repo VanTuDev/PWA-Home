@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, X, Upload } from 'lucide-react';
+import { toast } from '../../utils/toast';
+import { confirm } from '../ConfirmDialog';
 
 interface Pet {
-  _id: string;
+  id: string;
   name: string;
   breed: string;
   age: string;
@@ -35,12 +37,22 @@ const STATUS_LABEL = { Ready: 'Sẵn sàng', Treatment: 'Điều trị', Adopted
 
 const getToken = () => localStorage.getItem('paw_token') || '';
 const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
+
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="space-y-1">
+    <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">{label}</label>
+    {children}
+  </div>
+);
+
 const imgSrc = (img: string) => {
   if (!img) return '';
   if (img.startsWith('http')) return img;
   const path = img.startsWith('/') ? img : `/${img}`;
   return `${BE_URL}${path}`;
 };
+
+const inputCls = "w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 font-medium";
 
 export const PetsTab: React.FC = () => {
   const [pets, setPets]               = useState<Pet[]>([]);
@@ -136,7 +148,7 @@ export const PetsTab: React.FC = () => {
     // Không có ảnh mới → BE tự giữ nguyên ảnh cũ trong DB
 
     try {
-      const url    = editing ? `/api/pets/${editing._id}` : '/api/pets';
+      const url    = editing ? `/api/pets/${editing.id}` : '/api/pets';
       const method = editing ? 'PUT' : 'POST';
       const res    = await fetch(url, {
         method,
@@ -152,30 +164,24 @@ export const PetsTab: React.FC = () => {
   };
 
   const handleDelete = async (pet: Pet) => {
-    if (!window.confirm(`Xóa bé ${pet.name}?`)) return;
-    const res = await fetch(`/api/pets/${pet._id}`, {
+    const ok = await confirm({ message: `Xóa bé ${pet.name}?`, danger: true, confirmText: 'Xóa' });
+    if (!ok) return;
+    const res = await fetch(`/api/pets/${pet.id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${getToken()}` }
     });
     if (res.ok) loadPets();
-    else { const d = await res.json(); alert(d.message); }
+    else { const d = await res.json(); toast.error(d.message); }
   };
 
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">{label}</label>
-      {children}
-    </div>
-  );
 
-  const inputCls = "w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 font-medium";
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-on-surface tracking-tighter">Quản lý thú cưng</h1>
+          <h1 className="text-xl sm:text-3xl font-black text-on-surface tracking-tighter">Quản lý thú cưng</h1>
           <p className="text-sm text-on-surface-variant font-medium mt-1">
             {loading ? '...' : `${pets.length} bé trong hệ thống`}
           </p>
@@ -205,7 +211,7 @@ export const PetsTab: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-outline-variant">
                 {pets.map(pet => (
-                  <tr key={pet._id} className="hover:bg-surface-container-lowest transition-colors">
+                  <tr key={pet.id} className="hover:bg-surface-container-lowest transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img src={imgSrc(pet.image)} alt={pet.name}

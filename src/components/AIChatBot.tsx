@@ -155,8 +155,8 @@ export const AIChatBot: React.FC = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="fixed bottom-6 right-6 z-50 w-[360px] bg-white rounded-[28px] shadow-2xl border border-outline-variant flex flex-col overflow-hidden"
-            style={{ height: 'min(560px, calc(100vh - 48px))' }}
+            className="fixed bottom-4 right-4 z-50 bg-white rounded-[28px] shadow-2xl border border-outline-variant flex flex-col overflow-hidden"
+            style={{ width: 'min(360px, calc(100vw - 2rem))', height: 'min(560px, calc(100vh - 5rem))' }}
           >
             {/* Header */}
             <div className="bg-primary px-4 py-3 flex items-center justify-between flex-shrink-0">

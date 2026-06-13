@@ -77,7 +77,7 @@ export const CheckoutModal: React.FC<Props> = ({ product, onClose }) => {
       if (!res.ok) { setError(data.message); return; }
 
       if (method === 'online' && data.paymentUrl) {
-        window.location.href = data.paymentUrl;
+        window.open(data.paymentUrl, '_blank', 'noopener,noreferrer');
       } else {
         onClose();
         navigate('/payment/result?status=success&orderId=' + data.order._id);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, X, Upload, Star } from 'lucide-react';
-import { NumberInput } from '../NumberInput';
+import { toast } from '../../utils/toast';
+import { confirm } from '../ConfirmDialog';
 
 interface Product {
   _id: string;
@@ -32,17 +33,26 @@ const imgSrc = (img: string) => {
   return `${BE_URL}${path}`;
 };
 
+// Defined outside component so they're stable across renders
+const inputCls = "w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 font-medium bg-white";
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="space-y-1">
+    <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">{label}</label>
+    {children}
+  </div>
+);
+
 export const ProductsTab: React.FC = () => {
-  const [products, setProducts]       = useState<Product[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [saving, setSaving]           = useState(false);
-  const [showForm, setShowForm]       = useState(false);
-  const [editing, setEditing]         = useState<Product | null>(null);
-  const [form, setForm]               = useState(defaultForm);
-  const [imageFile, setImageFile]     = useState<File | null>(null);
+  const [products, setProducts]         = useState<Product[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [saving, setSaving]             = useState(false);
+  const [showForm, setShowForm]         = useState(false);
+  const [editing, setEditing]           = useState<Product | null>(null);
+  const [form, setForm]                 = useState(defaultForm);
+  const [imageFile, setImageFile]       = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
-  const [error, setError]             = useState('');
-  const fileRef                       = useRef<HTMLInputElement>(null);
+  const [error, setError]               = useState('');
+  const fileRef                         = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -94,10 +104,10 @@ export const ProductsTab: React.FC = () => {
     fd.append('price',       form.price);
     fd.append('stock',       form.stock || '0');
     fd.append('rating',      form.rating || '5');
-    fd.append('soldCount',    form.soldCount || '0');
+    fd.append('soldCount',   form.soldCount || '0');
     fd.append('isNew',       String(form.isNew));
-    if (imageFile)        fd.append('image', imageFile);
-    else if (form.imageUrl) fd.append('image', form.imageUrl);
+    if (imageFile)           fd.append('image', imageFile);
+    else if (form.imageUrl)  fd.append('image', form.imageUrl);
 
     try {
       const url    = editing ? `/api/products/${editing._id}` : '/api/products';
@@ -116,28 +126,21 @@ export const ProductsTab: React.FC = () => {
   };
 
   const handleDelete = async (p: Product) => {
-    if (!window.confirm(`Xóa sản phẩm "${p.name}"?`)) return;
+    const ok = await confirm({ message: `Xóa sản phẩm "${p.name}"?`, danger: true, confirmText: 'Xóa' });
+    if (!ok) return;
     const res = await fetch(`/api/products/${p._id}`, {
       method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` }
     });
     if (res.ok) load();
-    else { const d = await res.json(); alert(d.message); }
+    else { const d = await res.json(); toast.error(d.message); }
   };
-
-  const inputCls = "w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 font-medium bg-white";
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-wider">{label}</label>
-      {children}
-    </div>
-  );
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-on-surface tracking-tighter">Quản lý sản phẩm</h1>
+          <h1 className="text-xl sm:text-3xl font-black text-on-surface tracking-tighter">Quản lý sản phẩm</h1>
           <p className="text-sm text-on-surface-variant font-medium mt-1">
             {loading ? '...' : `${products.length} sản phẩm trong shop`}
           </p>
@@ -276,20 +279,27 @@ export const ProductsTab: React.FC = () => {
                   </select>
                 </Field>
                 <Field label="Giá bán (đ) *">
-                  <NumberInput min={0} step={1000} placeholder="150000"
-                    value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} />
+                  <input className={inputCls} placeholder="150000" inputMode="numeric"
+                    value={form.price}
+                    onChange={e => setForm(f => ({ ...f, price: e.target.value.replace(/\D/g, '') }))} />
                 </Field>
                 <Field label="Tồn kho">
-                  <NumberInput min={0} step={1} placeholder="100"
-                    value={form.stock} onChange={v => setForm(f => ({ ...f, stock: v }))} />
+                  <input className={inputCls} placeholder="100" inputMode="numeric"
+                    value={form.stock}
+                    onChange={e => setForm(f => ({ ...f, stock: e.target.value.replace(/\D/g, '') }))} />
                 </Field>
                 <Field label="Đánh giá (1-5)">
-                  <NumberInput min={1} max={5} step={0.1} placeholder="4.8"
-                    value={form.rating} onChange={v => setForm(f => ({ ...f, rating: v }))} />
+                  <input className={inputCls} placeholder="4.8"
+                    value={form.rating}
+                    onChange={e => {
+                      const v = e.target.value;
+                      if (/^\d*\.?\d*$/.test(v)) setForm(f => ({ ...f, rating: v }));
+                    }} />
                 </Field>
                 <Field label="Số lượng đã bán">
-                  <NumberInput min={0} step={1} placeholder="0"
-                    value={form.soldCount} onChange={v => setForm(f => ({ ...f, soldCount: v }))} />
+                  <input className={inputCls} placeholder="0" inputMode="numeric"
+                    value={form.soldCount}
+                    onChange={e => setForm(f => ({ ...f, soldCount: e.target.value.replace(/\D/g, '') }))} />
                 </Field>
                 <Field label="Trạng thái">
                   <label className="flex items-center gap-3 cursor-pointer h-[42px]">

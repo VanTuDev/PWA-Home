@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, Loader2, RefreshCw, User } from 'lucide-react';
+import { MessageCircle, Send, Loader2, RefreshCw, User, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { connectSocket } from '../../lib/socket';
 
@@ -36,6 +36,7 @@ export const ChatTab: React.FC = () => {
   const [input,     setInput]     = useState('');
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [loadingMsgs,  setLoadingMsgs]  = useState(false);
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const loadRooms = async () => {
@@ -87,6 +88,7 @@ export const ChatTab: React.FC = () => {
 
   const openRoom = async (room: Room) => {
     setSelected(room);
+    setMobileChatOpen(true);
     setLoadingMsgs(true);
     setMessages([]);
 
@@ -122,8 +124,8 @@ export const ChatTab: React.FC = () => {
 
   return (
     <div className="flex h-[calc(100vh-160px)] bg-white rounded-[32px] border border-outline-variant overflow-hidden shadow-sm">
-      {/* Sidebar rooms */}
-      <div className="w-72 border-r border-outline-variant flex flex-col flex-shrink-0">
+      {/* Sidebar rooms — hidden on mobile when chat is open */}
+      <div className={`${mobileChatOpen ? 'hidden sm:flex' : 'flex'} w-full sm:w-72 border-r border-outline-variant flex-col flex-shrink-0`}>
         <div className="p-5 border-b border-outline-variant flex items-center justify-between">
           <div>
             <h2 className="font-black text-on-surface">Chat hỗ trợ</h2>
@@ -173,8 +175,8 @@ export const ChatTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 flex flex-col">
+      {/* Chat area — hidden on mobile when room list is shown */}
+      <div className={`${mobileChatOpen ? 'flex' : 'hidden sm:flex'} flex-1 flex-col`}>
         {!selected ? (
           <div className="flex-1 flex items-center justify-center text-on-surface-variant">
             <div className="text-center">
@@ -186,9 +188,18 @@ export const ChatTab: React.FC = () => {
         ) : (
           <>
             {/* Chat header */}
-            <div className="px-6 py-4 border-b border-outline-variant flex items-center gap-3 flex-shrink-0">
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-5 h-5 text-primary" />
+            <div className="px-4 sm:px-6 py-4 border-b border-outline-variant flex items-center gap-3 flex-shrink-0">
+              {/* Back button — mobile only */}
+              <button onClick={() => setMobileChatOpen(false)}
+                className="sm:hidden p-1.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant flex-shrink-0">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {selected.user?.avatar
+                  ? <img src={imgSrc(selected.user.avatar)} alt="" className="w-full h-full object-cover"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  : <User className="w-5 h-5 text-primary" />
+                }
               </div>
               <div>
                 <p className="font-bold text-sm text-on-surface">{selected.user?.name}</p>
@@ -210,8 +221,12 @@ export const ChatTab: React.FC = () => {
                 messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.isFromAdmin ? 'justify-end' : 'justify-start'}`}>
                     {!msg.isFromAdmin && (
-                      <div className="w-7 h-7 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0 mr-2 self-end">
-                        <User className="w-4 h-4 text-on-surface-variant" />
+                      <div className="w-7 h-7 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0 mr-2 self-end overflow-hidden">
+                        {selected.user?.avatar
+                          ? <img src={imgSrc(selected.user.avatar)} alt="" className="w-full h-full object-cover"
+                              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          : <User className="w-4 h-4 text-on-surface-variant" />
+                        }
                       </div>
                     )}
                     <div className={`max-w-[70%] px-4 py-2.5 rounded-[16px] text-sm leading-relaxed ${

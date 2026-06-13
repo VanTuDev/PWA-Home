@@ -9,10 +9,14 @@ import { ProductsTab } from '../components/admin/ProductsTab';
 import { OrdersTab } from '../components/admin/OrdersTab';
 import { ApplicationsTab } from '../components/admin/ApplicationsTab';
 import { ChatTab } from '../components/admin/ChatTab';
+import { AIWorkflowsTab } from '../components/admin/AIWorkflowsTab';
+import { ToastContainer } from '../components/Toast';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 export const AdminDashboard: React.FC = () => {
   const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const renderTab = () => {
     switch (activeTab) {
@@ -22,6 +26,7 @@ export const AdminDashboard: React.FC = () => {
       case 'orders':       return <OrdersTab />;
       case 'applications': return <ApplicationsTab />;
       case 'chat':         return <ChatTab />;
+      case 'workflows':    return <AIWorkflowsTab />;
       case 'users':        return isAdmin ? <UsersTab /> : <Restricted />;
       default:
         return (
@@ -33,14 +38,20 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-
   return (
     <div className="flex h-screen bg-surface-container-low overflow-hidden font-sans">
-      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <AdminHeader />
-        <div className="p-8 flex-1">{renderTab()}</div>
+      <AdminSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+      <main className="flex-1 flex flex-col overflow-y-auto min-w-0">
+        <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
+        <div className="p-4 sm:p-6 lg:p-8 flex-1">{renderTab()}</div>
       </main>
+      <ToastContainer />
+      <ConfirmDialog />
     </div>
   );
 };

@@ -25,6 +25,8 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { ChangePassword } from './pages/ChangePassword';
 import { AIChatBot } from './components/AIChatBot';
+import { ToastContainer } from './components/Toast';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import { Profile } from './pages/Profile';
 import { History } from './pages/History';
 
@@ -99,6 +101,8 @@ const AppContent = () => {
       </main>
       {!isAdminPath && <Footer />}
       {!isAdminPath && <AIChatBot />}
+      <ToastContainer />
+      <ConfirmDialog />
     </div>
   );
 };

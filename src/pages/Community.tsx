@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { confirm } from '../components/ConfirmDialog';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Comment {
@@ -128,7 +129,7 @@ const PostCard: React.FC<{
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Xóa bài viết này?')) return;
+    if (!await confirm({ message: 'Xóa bài viết này?', danger: true, confirmText: 'Xóa' })) return;
     const res = await fetch(`/api/posts/${post._id}`, { method: 'DELETE', headers: authHeader(token) });
     if (res.ok) onDeleted(post._id);
   };
@@ -361,6 +362,7 @@ export const Community: React.FC = () => {
   const [imagePreview, setImagePreview] = useState('');
   const [posting, setPosting]   = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [taskToast, setTaskToast] = useState('');
   const fileRef                  = useRef<HTMLInputElement>(null);
 
   const loadPosts = async () => {
@@ -396,6 +398,10 @@ export const Community: React.FC = () => {
       const newPost = await res.json();
       setPosts(p => [newPost, ...p]);
       setContent(''); setImageFile(null); setImagePreview(''); setExpanded(false);
+      if (newPost.completedTask) {
+        setTaskToast(`✅ Hoàn thành nhiệm vụ tuần ${newPost.completedTask.weekNumber}! Kiểm tra bảng Nhiệm vụ.`);
+        setTimeout(() => setTaskToast(''), 5000);
+      }
     }
     setPosting(false);
   };
@@ -409,6 +415,12 @@ export const Community: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface-container-low">
+      {/* Task completion toast */}
+      {taskToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-2xl shadow-xl text-sm font-bold animate-bounce">
+          {taskToast}
+        </div>
+      )}
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
 
         {/* Tabs */}
@@ -450,7 +462,7 @@ export const Community: React.FC = () => {
               </div>
 
               {imagePreview && (
-                <div className="relative inline-block mb-3 ml-13">
+                <div className="relative inline-block mb-3 ml-0 sm:ml-13">
                   <img src={imagePreview} className="h-32 rounded-2xl object-cover" alt="preview" />
                   <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }}
                     className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow">

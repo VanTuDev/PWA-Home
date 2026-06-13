@@ -93,7 +93,7 @@ export const Profile: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface pb-16">
       {/* Cover Photo */}
-      <div className="relative h-56 md:h-72 bg-primary/20 overflow-hidden group">
+      <div className="relative h-40 sm:h-56 md:h-72 bg-primary/20 overflow-hidden group">
         <img
           src={coverPreview || COVER_PLACEHOLDER}
           alt="Ảnh bìa"

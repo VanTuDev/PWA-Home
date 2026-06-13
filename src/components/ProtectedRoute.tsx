@@ -33,7 +33,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    alert('Tài khoản của bạn không có quyền truy cập khu vực này.');
     return <Navigate to="/" replace />;
   }
 

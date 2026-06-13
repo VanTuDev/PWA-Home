@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Check, X, ShieldAlert, Phone, Eye, Calendar, MapPin, Briefcase, DollarSign, Home, Heart, Award, ArrowUpRight, User, Truck, FileText, CreditCard } from 'lucide-react';
+import { ClipboardList, Check, X, ShieldAlert, Phone, Eye, Calendar, MapPin, Briefcase, DollarSign, Home, Heart, Award, ArrowUpRight, User, Truck, FileText, CreditCard, Camera, AlertTriangle, Bell, RefreshCw, Loader2 } from 'lucide-react';
+import { toast } from '../../utils/toast';
+import { confirm } from '../ConfirmDialog';
 
 interface Pet {
   id: string;
@@ -14,6 +16,13 @@ interface User {
   name: string;
   email: string;
   phone: string;
+}
+
+interface TrackingReport {
+  weekNumber: number;
+  image: string;
+  comment: string;
+  submittedAt: string;
 }
 
 interface AdoptionApplication {
@@ -34,6 +43,7 @@ interface AdoptionApplication {
   status: 'Pending' | 'Approved' | 'Rejected' | 'FollowUp';
   deliveryOption: 'pickup' | 'shipping';
   submittedAt: string;
+  trackingReports?: TrackingReport[];
 }
 
 const STATUS_STYLE: Record<string, string> = {
@@ -56,6 +66,16 @@ const authHeader = () => ({
   'Content-Type': 'application/json'
 });
 
+const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
+const imgSrcA = (img?: string) => {
+  if (!img) return '';
+  if (img.startsWith('http')) return img;
+  return `${BE_URL}${img.startsWith('/') ? img : `/${img}`}`;
+};
+
+const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
 export const ApplicationsTab: React.FC = () => {
   const [applications, setApplications] = useState<AdoptionApplication[]>([]);
   const [loading, setLoading]           = useState(true);
@@ -63,6 +83,10 @@ export const ApplicationsTab: React.FC = () => {
   const [selectedApp, setSelectedApp]   = useState<AdoptionApplication | null>(null);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [actioning, setActioning]       = useState(false);
+  const [activeTab, setActiveTab]       = useState<'applications' | 'tracking' | 'warnings'>('applications');
+  const [overdueList,  setOverdueList]  = useState<any[]>([]);
+  const [overdueLoading, setOverdueLoading] = useState(false);
+  const [warningSending, setWarningSending] = useState(false);
 
   const loadApplications = async () => {
     setLoading(true);
@@ -86,8 +110,33 @@ export const ApplicationsTab: React.FC = () => {
     loadApplications();
   }, []);
 
+  const loadOverdue = async () => {
+    setOverdueLoading(true);
+    try {
+      const r = await fetch('/api/adoptions/overdue', { headers: authHeader() });
+      if (r.ok) setOverdueList(await r.json());
+    } catch { /* silent */ }
+    finally { setOverdueLoading(false); }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'warnings') loadOverdue();
+  }, [activeTab]);
+
+  const sendWarnings = async () => {
+    setWarningSending(true);
+    try {
+      const r = await fetch('/api/adoptions/warn-overdue', { method: 'POST', headers: authHeader() });
+      const d = await r.json();
+      toast.success(d.message || 'Đã gửi cảnh báo thành công.');
+      loadOverdue();
+    } catch { toast.error('Lỗi kết nối.'); }
+    finally { setWarningSending(false); }
+  };
+
   const handleUpdateStatus = async (appId: string, newStatus: 'Approved' | 'Rejected' | 'FollowUp') => {
-    if (!window.confirm(`Xác nhận cập nhật trạng thái đơn thành [${STATUS_TEXT[newStatus].toUpperCase()}]?`)) return;
+    const ok = await confirm({ message: `Xác nhận cập nhật trạng thái đơn thành "${STATUS_TEXT[newStatus]}"?` });
+    if (!ok) return;
     setActioning(true);
     try {
       const res = await fetch(`/api/adoptions/${appId}/status`, {
@@ -102,30 +151,54 @@ export const ApplicationsTab: React.FC = () => {
         if (selectedApp?.id === appId) {
           setSelectedApp(prev => prev ? { ...prev, status: newStatus } : null);
         }
-        alert('Cập nhật trạng thái hồ sơ thành công!');
+        toast.success('Cập nhật trạng thái hồ sơ thành công!');
       } else {
-        alert(data.message || 'Thao tác cập nhật thất bại.');
+        toast.error(data.message || 'Thao tác cập nhật thất bại.');
       }
     } catch {
-      alert('Lỗi kết nối máy chủ khi duyệt hồ sơ.');
+      toast.error('Lỗi kết nối máy chủ khi duyệt hồ sơ.');
     } finally {
       setActioning(false);
     }
   };
 
-  const imgSrc = (img: string) => {
-    if (!img) return 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400';
-    return img.startsWith('/uploads') ? `http://localhost:5000${img}` : img;
-  };
+  const imgSrc = imgSrcA;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-black text-on-surface tracking-tighter">Đơn đăng ký nhận nuôi</h1>
-        <p className="text-sm text-on-surface-variant font-medium mt-1">
-          {loading ? '...' : `${applications.length} hồ sơ đăng ký nhận nuôi thú cưng`}
-        </p>
+      <div className="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-xl sm:text-3xl font-black text-on-surface tracking-tighter">Đơn đăng ký nhận nuôi</h1>
+          <p className="text-sm text-on-surface-variant font-medium mt-1">
+            {loading ? '...' : `${applications.length} hồ sơ · ${applications.filter(a => a.status === 'Approved').length} đã duyệt · ${applications.filter(a => a.status === 'Pending').length} chờ duyệt`}
+          </p>
+        </div>
+        {/* Tab switcher */}
+        <div className="flex gap-2 bg-surface-container rounded-2xl p-1.5 flex-wrap">
+          <button onClick={() => setActiveTab('applications')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'applications' ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}>
+            <ClipboardList className="w-4 h-4" /> Tất cả đơn
+          </button>
+          <button onClick={() => setActiveTab('tracking')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'tracking' ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}>
+            <Camera className="w-4 h-4" /> Theo dõi
+            {applications.filter(a => a.status === 'Approved' || a.status === 'FollowUp').length > 0 && (
+              <span className="bg-primary text-on-primary text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                {applications.filter(a => a.status === 'Approved' || a.status === 'FollowUp').length}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setActiveTab('warnings')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'warnings' ? 'bg-white text-error shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}>
+            <AlertTriangle className="w-4 h-4" /> Cảnh báo
+            {overdueList.length > 0 && (
+              <span className="bg-error text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                {overdueList.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -134,7 +207,140 @@ export const ApplicationsTab: React.FC = () => {
         </div>
       )}
 
-      {/* Main Table */}
+      {/* ── Tracking Tab ── */}
+      {activeTab === 'tracking' && (
+        <TrackingView
+          applications={applications.filter(a => a.status === 'Approved' || a.status === 'FollowUp')}
+          imgSrc={imgSrc}
+          onEnlarge={setEnlargedImage}
+        />
+      )}
+
+      {/* ── Warnings Tab ── */}
+      {activeTab === 'warnings' && (
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-start gap-4">
+            <AlertTriangle className="w-6 h-6 text-rose-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold text-rose-700">Người dùng chưa hoàn thành nhiệm vụ theo dõi</p>
+              <p className="text-sm text-rose-600 mt-0.5">
+                Danh sách người dùng có đơn được duyệt nhưng chưa đăng ảnh cập nhật hàng tuần đúng hạn (trễ ≥ 3 ngày).
+                Cron tự động gửi cảnh báo lúc 9:00 sáng mỗi ngày.
+              </p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={loadOverdue} disabled={overdueLoading}
+                className="flex items-center gap-1.5 px-3 py-2 bg-white border border-rose-200 text-rose-600 rounded-xl text-xs font-bold hover:bg-rose-50 transition-all">
+                {overdueLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                Làm mới
+              </button>
+              <button onClick={sendWarnings} disabled={warningSending || overdueList.length === 0}
+                className="flex items-center gap-1.5 px-4 py-2 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 disabled:opacity-40 transition-all">
+                {warningSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
+                Gửi cảnh báo ngay
+              </button>
+            </div>
+          </div>
+
+          {overdueLoading ? (
+            <div className="py-16 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
+          ) : overdueList.length === 0 ? (
+            <div className="py-16 text-center text-on-surface-variant">
+              <Check className="w-12 h-12 mx-auto mb-3 text-emerald-400" />
+              <p className="font-bold">Tất cả người dùng đều đang hoàn thành nhiệm vụ đúng hạn!</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-[28px] border border-outline-variant overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-rose-50 text-[10px] uppercase font-black text-rose-600 tracking-[0.15em] border-b border-rose-100">
+                      <th className="px-6 py-4">Người dùng</th>
+                      <th className="px-6 py-4">Thú cưng</th>
+                      <th className="px-6 py-4">Tuần kỳ vọng</th>
+                      <th className="px-6 py-4">Đã hoàn thành</th>
+                      <th className="px-6 py-4">Tuần thiếu</th>
+                      <th className="px-6 py-4">Trễ (ngày)</th>
+                      <th className="px-6 py-4">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant">
+                    {overdueList.map(item => (
+                      <tr key={item.adoptionId} className="hover:bg-rose-50/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {item.user?.avatar ? (
+                              <img src={imgSrc(item.user.avatar)} className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
+                                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-black text-sm flex-shrink-0">
+                                {(item.user?.name || '?').charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-bold text-sm text-on-surface">{item.user?.name || 'N/A'}</p>
+                              <p className="text-[10px] text-on-surface-variant">{item.user?.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            {item.pet?.image && (
+                              <img src={imgSrc(item.pet.image)} className="w-8 h-8 rounded-lg object-cover"
+                                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
+                            )}
+                            <div>
+                              <p className="font-semibold text-sm">{item.pet?.name || 'N/A'}</p>
+                              <p className="text-[10px] text-on-surface-variant">{item.pet?.breed}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-black text-sm text-on-surface">Tuần {item.expectedWeek}</span>
+                          <p className="text-[10px] text-on-surface-variant">{item.daysSince} ngày từ khi duyệt</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-black text-lg text-emerald-600">{item.completedCount}</span>
+                            <span className="text-on-surface-variant text-sm">/4 tuần</span>
+                          </div>
+                          <div className="h-1.5 w-16 bg-surface-container rounded-full mt-1 overflow-hidden">
+                            <div className="h-full bg-emerald-400 rounded-full"
+                              style={{ width: `${(item.completedCount / 4) * 100}%` }} />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-1 flex-wrap">
+                            {item.missingWeeks.map((w: number) => (
+                              <span key={w} className="bg-rose-100 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                                Tuần {w}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`font-black text-sm ${item.daysOverdue >= 7 ? 'text-rose-600' : 'text-amber-600'}`}>
+                            {item.daysOverdue} ngày
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${STATUS_STYLE[item.status]}`}>
+                            {STATUS_TEXT[item.status]}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Applications Table ── */}
+      {activeTab === 'applications' && (
       <div className="bg-white rounded-[32px] border border-outline-variant shadow-sm overflow-hidden">
         {loading ? (
           <div className="py-20 text-center text-on-surface-variant font-medium animate-pulse">Đang tải danh sách hồ sơ...</div>
@@ -218,6 +424,7 @@ export const ApplicationsTab: React.FC = () => {
           </div>
         )}
       </div>
+      )} {/* end activeTab === 'applications' */}
 
       {/* ── Details Expansion Drawer / Modal ───────────────────────────────── */}
       {selectedApp && (
@@ -449,5 +656,179 @@ export const ApplicationsTab: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+// ── Tracking View Component ────────────────────────────────────────────────
+const TrackingView: React.FC<{
+  applications: AdoptionApplication[];
+  imgSrc: (s?: string) => string;
+  onEnlarge: (url: string) => void;
+}> = ({ applications, imgSrc, onEnlarge }) => {
+  const [detail, setDetail] = React.useState<AdoptionApplication | null>(null);
+
+  if (applications.length === 0) {
+    return (
+      <div className="bg-white rounded-[32px] border border-outline-variant p-16 text-center shadow-sm">
+        <Camera className="w-12 h-12 mx-auto mb-3 text-on-surface-variant opacity-30" />
+        <p className="font-bold text-on-surface-variant">Chưa có ca nào đang theo dõi</p>
+        <p className="text-sm text-on-surface-variant mt-1 opacity-60">Các đơn được duyệt sẽ xuất hiện ở đây.</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+    <div className="space-y-6">
+      {applications.map(app => {
+        const reports = app.trackingReports ?? [];
+        const pct = Math.min(100, Math.round((reports.length / 4) * 100));
+        return (
+          <div key={app.id} className="bg-white rounded-[32px] border border-outline-variant shadow-sm overflow-hidden">
+            {/* Header — clickable */}
+            <div className="p-6 border-b border-outline-variant bg-surface-container-lowest flex items-center gap-4 cursor-pointer hover:bg-primary/5 transition-colors"
+              onClick={() => setDetail(app)}>
+              {app.petId?.image ? (
+                <img src={imgSrc(app.petId.image)} className="w-14 h-14 rounded-2xl object-cover flex-shrink-0"
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
+              ) : (
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Camera className="w-6 h-6 text-primary opacity-40" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-black text-on-surface">{app.fullName || 'N/A'}</h3>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border border-current ${STATUS_STYLE[app.status]}`}>
+                    {STATUS_TEXT[app.status]}
+                  </span>
+                </div>
+                <p className="text-sm text-on-surface-variant mt-0.5">
+                  {app.petId ? `Bé ${app.petId.name} (${app.petId.breed})` : 'N/A'} · Ngày duyệt: {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString('vi-VN') : 'N/A'}
+                </p>
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-xs font-bold text-primary whitespace-nowrap">{reports.length}/4 tuần · {pct}%</span>
+                </div>
+              </div>
+              <Eye className="w-5 h-5 text-primary opacity-60 flex-shrink-0" title="Xem lịch sử nhiệm vụ" />
+            </div>
+
+            {/* Reports grid */}
+            {reports.length === 0 ? (
+              <p className="text-center py-8 text-sm text-on-surface-variant italic">Chủ nuôi chưa gửi báo cáo tuần nào.</p>
+            ) : (
+              <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {reports
+                  .slice()
+                  .sort((a, b) => a.weekNumber - b.weekNumber)
+                  .map(r => (
+                    <div key={r.weekNumber} className="space-y-2">
+                      <div className="relative group cursor-zoom-in rounded-2xl overflow-hidden aspect-square bg-surface-container"
+                        onClick={() => r.image && onEnlarge(imgSrc(r.image))}>
+                        {r.image ? (
+                          <img src={imgSrc(r.image)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt={`Tuần ${r.weekNumber}`}
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Camera className="w-8 h-8 text-on-surface-variant opacity-30" />
+                          </div>
+                        )}
+                        <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                          Tuần {r.weekNumber}
+                        </div>
+                      </div>
+                      <p className="text-xs text-on-surface-variant leading-relaxed">
+                        {r.comment || <span className="italic opacity-50">Không có ghi chú</span>}
+                      </p>
+                      <p className="text-[10px] text-on-surface-variant opacity-60">
+                        {r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('vi-VN') : ''}
+                      </p>
+                    </div>
+                  ))}
+                {/* Empty slots */}
+                {Array.from({ length: Math.max(0, 4 - reports.length) }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square rounded-2xl border-2 border-dashed border-outline-variant flex items-center justify-center">
+                    <span className="text-xs text-on-surface-variant opacity-40">Tuần {reports.length + i + 1}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+
+    {/* ── Task History Modal ── */}
+    {detail && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
+        onClick={() => setDetail(null)}>
+        <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+          onClick={e => e.stopPropagation()}>
+          {/* Modal header */}
+          <div className="p-6 border-b border-outline-variant bg-surface-container-lowest flex items-center gap-4">
+            {detail.petId?.image ? (
+              <img src={imgSrc(detail.petId.image)} className="w-14 h-14 rounded-2xl object-cover flex-shrink-0" alt="" />
+            ) : (
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Camera className="w-6 h-6 text-primary opacity-40" />
+              </div>
+            )}
+            <div className="flex-1">
+              <h3 className="font-black text-on-surface text-lg">{detail.fullName}</h3>
+              <p className="text-sm text-on-surface-variant">
+                {detail.petId ? `Bé ${detail.petId.name} (${detail.petId.breed})` : 'N/A'} · {detail.phone}
+              </p>
+            </div>
+            <button onClick={() => setDetail(null)} className="p-2 hover:bg-surface-container rounded-xl transition-colors">
+              <X className="w-5 h-5 text-on-surface-variant" />
+            </button>
+          </div>
+          {/* Timeline */}
+          <div className="p-6 overflow-y-auto space-y-5">
+            <div className="grid grid-cols-4 gap-1 mb-4">
+              {[1,2,3,4].map(w => {
+                const done = (detail.trackingReports ?? []).some(r => r.weekNumber === w);
+                return (
+                  <div key={w} className={`text-center py-2 rounded-xl text-xs font-black ${done ? 'bg-emerald-100 text-emerald-700' : 'bg-surface-container text-on-surface-variant'}`}>
+                    Tuần {w}{done ? ' ✓' : ''}
+                  </div>
+                );
+              })}
+            </div>
+            {(detail.trackingReports ?? []).length === 0 ? (
+              <p className="text-center py-12 text-on-surface-variant italic text-sm">Chưa có báo cáo nào.</p>
+            ) : (
+              [...(detail.trackingReports ?? [])].sort((a,b) => a.weekNumber - b.weekNumber).map(r => (
+                <div key={r.weekNumber} className="flex gap-4 p-4 bg-surface-container-low rounded-2xl">
+                  {r.image ? (
+                    <img src={imgSrc(r.image)} className="w-28 h-28 rounded-xl object-cover flex-shrink-0 cursor-zoom-in"
+                      onClick={() => onEnlarge(imgSrc(r.image))} alt={`Tuần ${r.weekNumber}`}
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    <div className="w-28 h-28 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0">
+                      <Camera className="w-8 h-8 text-on-surface-variant opacity-30" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="bg-primary text-on-primary text-xs font-black px-2.5 py-1 rounded-full">Tuần {r.weekNumber}</span>
+                      <span className="text-xs text-on-surface-variant">{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : ''}</span>
+                    </div>
+                    <p className="text-sm text-on-surface leading-relaxed">
+                      {r.comment || <span className="italic text-on-surface-variant opacity-60">Không có ghi chú</span>}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };

@@ -118,7 +118,7 @@ export const Pets: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface">
       {/* ── Header ── */}
-      <section className="relative bg-gradient-to-br from-primary/5 via-surface to-secondary/5 pt-16 pb-12 px-margin-mobile md:px-margin-desktop overflow-hidden">
+      <section className="relative bg-gradient-to-br from-primary/5 via-surface to-secondary/5 pt-10 pb-8 md:pt-16 md:pb-12 px-margin-mobile md:px-margin-desktop overflow-hidden">
         <div className="absolute inset-0 opacity-5 pointer-events-none"
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-primary) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         <div className="max-w-container-max mx-auto relative z-10">
@@ -127,7 +127,7 @@ export const Pets: React.FC = () => {
               <div className="w-8 h-[2px] bg-primary" />
               PAW Home
             </div>
-            <h1 className="text-5xl md:text-7xl font-black text-on-surface tracking-tighter mb-4">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-on-surface tracking-tighter mb-4">
               Thú cưng <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">cần gia đình</span>
             </h1>
             <p className="text-on-surface-variant text-lg font-medium max-w-xl">
@@ -159,7 +159,7 @@ export const Pets: React.FC = () => {
       <div className="sticky top-[73px] z-30 bg-surface/90 backdrop-blur-md border-b border-outline-variant px-margin-mobile md:px-margin-desktop py-3 shadow-sm">
         <div className="max-w-container-max mx-auto flex items-center gap-3 flex-wrap">
           {/* Search */}
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-[140px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
             <input
               value={search} onChange={e => setSearch(e.target.value)}
@@ -288,129 +288,154 @@ export const Pets: React.FC = () => {
             layout
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
-            {filtered.map((pet, i) => (
-              <motion.div
-                key={pet.id || pet._id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.04, 0.3) }}
-                className="group bg-white rounded-[32px] border border-outline-variant overflow-hidden hover:shadow-2xl hover:shadow-primary/8 hover:-translate-y-1 transition-all duration-300"
-              >
-                {/* Image */}
-                <div className="relative h-52 overflow-hidden">
-                  <img
-                    src={imgSrc(pet.image)}
-                    alt={pet.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x300/f5f0eb/553722?text=🐾'; }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            {filtered.map((pet, i) => {
+              const petId = pet.id || pet._id;
+              const isLiked = liked.has(petId);
+              const statusGrad =
+                pet.status === 'Ready'     ? 'from-emerald-500/90 to-teal-600/90' :
+                pet.status === 'Treatment' ? 'from-amber-500/90 to-orange-600/90' :
+                                             'from-blue-500/90 to-indigo-600/90';
+              const cardAccent =
+                pet.status === 'Ready'     ? 'shadow-emerald-100 border-emerald-100/60' :
+                pet.status === 'Treatment' ? 'shadow-amber-100 border-amber-100/60' :
+                                             'shadow-blue-100 border-blue-100/60';
 
-                  {/* Status badge */}
-                  <div className="absolute top-3 left-3">
-                    <StatusBadge s={pet.status} />
+              return (
+                <motion.div
+                  key={petId}
+                  layout
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.04, 0.3) }}
+                  className={`group relative rounded-[28px] overflow-hidden border shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 bg-white flex flex-col ${cardAccent}`}
+                >
+                  {/* ── Image zone ── */}
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={imgSrc(pet.image)}
+                      alt={pet.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x300/f5f0eb/553722?text=🐾'; }}
+                    />
+
+                    {/* Always-visible gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+                    {/* Top row: status + like */}
+                    <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+                      <StatusBadge s={pet.status} />
+                      <button
+                        onClick={() => toggleLike(petId)}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-all shadow-lg ${
+                          isLiked ? 'bg-red-500 text-white' : 'bg-white/25 text-white hover:bg-red-500'
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                      </button>
+                    </div>
+
+                    {/* Bottom: name + breed + gender/age overlaid */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <div className="flex items-end justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3 className="text-white font-black text-xl leading-tight truncate group-hover:text-yellow-200 transition-colors">
+                            {pet.name}
+                          </h3>
+                          <p className="text-white/75 text-xs font-semibold truncate">{pet.breed}</p>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1">
+                          {pet.gender === 'Male'
+                            ? <Male className="w-3.5 h-3.5 text-sky-300" />
+                            : <Female className="w-3.5 h-3.5 text-pink-300" />
+                          }
+                          <span className="text-white text-[11px] font-bold">{pet.age}</span>
+                        </div>
+                      </div>
+
+                      {/* AI match pill */}
+                      {pet.aiMatching > 0 && (
+                        <div className="mt-2 inline-flex items-center gap-1 bg-yellow-400/90 backdrop-blur-sm text-yellow-900 px-2.5 py-0.5 rounded-full">
+                          <Sparkles className="w-3 h-3" />
+                          <span className="text-[10px] font-black">{pet.aiMatching}% phù hợp</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Like button */}
-                  <button
-                    onClick={() => toggleLike(pet.id || pet._id)}
-                    className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm transition-all ${
-                      liked.has(pet.id || pet._id)
-                        ? 'bg-red-500 text-white shadow-lg'
-                        : 'bg-white/80 text-on-surface-variant hover:bg-white hover:text-red-500'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${liked.has(pet.id || pet._id) ? 'fill-current' : ''}`} />
-                  </button>
+                  {/* ── Info zone ── */}
+                  <div className="p-4 flex flex-col gap-3 flex-1">
+                    {/* Health badges */}
+                    <div className="flex gap-1.5 flex-wrap min-h-[22px]">
+                      {pet.healthInfo?.vaccinated && (
+                        <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-emerald-100">
+                          <Syringe className="w-2.5 h-2.5" /> Tiêm phòng
+                        </span>
+                      )}
+                      {pet.healthInfo?.neutered && (
+                        <span className="flex items-center gap-1 bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-purple-100">
+                          <Scissors className="w-2.5 h-2.5" /> Triệt sản
+                        </span>
+                      )}
+                      {pet.healthInfo?.microchipped && (
+                        <span className="flex items-center gap-1 bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-sky-100">
+                          <ShieldCheck className="w-2.5 h-2.5" /> Chip
+                        </span>
+                      )}
+                      {!pet.healthInfo?.vaccinated && !pet.healthInfo?.neutered && !pet.healthInfo?.microchipped && (
+                        <span className="text-[10px] text-on-surface-variant/50 italic">Chưa có thông tin sức khoẻ</span>
+                      )}
+                    </div>
 
-                  {/* AI match */}
-                  {pet.aiMatching > 0 && (
-                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Sparkles className="w-3 h-3 text-yellow-400" />
-                      <span className="text-[10px] font-black">{pet.aiMatching}% phù hợp</span>
-                    </div>
-                  )}
-                </div>
+                    {/* Description */}
+                    <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed flex-1">
+                      {pet.description || 'Đang cập nhật thông tin...'}
+                    </p>
 
-                {/* Info */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="text-lg font-black text-on-surface group-hover:text-primary transition-colors">{pet.name}</h3>
-                      <p className="text-xs text-on-surface-variant font-medium">{pet.breed}</p>
+                    {/* Tags */}
+                    {pet.tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {pet.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] font-bold rounded-full border border-primary/10">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Footer row: rescue partner + donation */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 text-on-surface-variant min-w-0">
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                        <span className="text-[10px] font-medium truncate">{pet.rescuePartner || 'PAW Home'}</span>
+                      </div>
+                      {pet.donationAmount > 0 && (
+                        <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-amber-100 flex-shrink-0 whitespace-nowrap">
+                          <Gift className="w-2.5 h-2.5" />
+                          {(pet.donationAmount / 1000).toFixed(0)}K đóng góp
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 text-on-surface-variant">
-                      {pet.gender === 'Male'
-                        ? <Male className="w-4 h-4 text-blue-500" />
-                        : <Female className="w-4 h-4 text-pink-500" />
-                      }
-                      <span className="text-xs font-bold text-on-surface-variant">{pet.age}</span>
-                    </div>
+
+                    {/* CTA button — always pinned to bottom */}
+                    <Link
+                      to={`/pet/${petId}`}
+                      className={`mt-auto w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all group/btn ${
+                        pet.status === 'Adopted'
+                          ? 'bg-surface-container text-on-surface-variant'
+                          : `bg-gradient-to-r ${statusGrad} text-white shadow-md hover:shadow-lg hover:gap-3`
+                      }`}
+                    >
+                      {pet.status === 'Adopted' ? 'Đã có gia đình 🎉' : (
+                        <>
+                          <span>Xem chi tiết</span>
+                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
+                        </>
+                      )}
+                    </Link>
                   </div>
-
-                  {/* Health icons */}
-                  <div className="flex gap-2 mb-3">
-                    {pet.healthInfo?.vaccinated && (
-                      <span title="Đã tiêm phòng" className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-green-100">
-                        <Syringe className="w-2.5 h-2.5" /> Tiêm phòng
-                      </span>
-                    )}
-                    {pet.healthInfo?.neutered && (
-                      <span title="Đã triệt sản" className="flex items-center gap-1 bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-purple-100">
-                        <Scissors className="w-2.5 h-2.5" /> Triệt sản
-                      </span>
-                    )}
-                    {pet.healthInfo?.microchipped && (
-                      <span title="Đã gắn chip" className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-blue-100">
-                        <ShieldCheck className="w-2.5 h-2.5" /> Chip
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-xs text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">{pet.description}</p>
-
-                  {/* Tags */}
-                  {pet.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {pet.tags.slice(0, 3).map(tag => (
-                        <span key={tag} className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] font-bold rounded-full">{tag}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Rescue partner */}
-                  <div className="flex items-center gap-1.5 mb-4 text-on-surface-variant">
-                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                    <span className="text-[10px] font-medium truncate">{pet.rescuePartner || 'PAW Home'}</span>
-                  </div>
-
-                  {/* Donation badge */}
-                  {pet.donationAmount > 0 && (
-                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-3">
-                      <Gift className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                      <span className="text-[10px] text-amber-700 font-bold">
-                        Đóng góp {pet.donationAmount.toLocaleString('vi-VN')}đ để nhận nuôi
-                      </span>
-                    </div>
-                  )}
-
-                  {/* CTA */}
-                  <Link
-                    to={`/pet/${pet.id || pet._id}`}
-                    className={`w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:gap-3 ${
-                      pet.status === 'Adopted'
-                        ? 'bg-surface-container text-on-surface-variant cursor-default'
-                        : 'bg-primary text-on-primary hover:bg-primary-container shadow-sm shadow-primary/20'
-                    }`}
-                  >
-                    {pet.status === 'Adopted' ? 'Đã có gia đình 🎉' : (
-                      <><span>Xem chi tiết</span><ArrowRight className="w-4 h-4" /></>
-                    )}
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
       </div>

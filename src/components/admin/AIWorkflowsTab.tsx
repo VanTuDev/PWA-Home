@@ -18,6 +18,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
+import { toast } from '../../utils/toast';
+import { confirm } from '../ConfirmDialog';
 
 // Initialize Gemini API client if API key is provided
 let ai: any = null;
@@ -522,7 +524,7 @@ Hãy chỉ trả về duy nhất một đối tượng JSON hợp lệ ở đị
         } : w
       );
       saveAllToLocalStorage(updatedList);
-      alert(`Đã cập nhật quy trình "${activeTitle}" thành công!`);
+      toast.success(`Đã cập nhật quy trình "${activeTitle}" thành công!`);
     } else {
       // Create new workflow record
       const newWorkflow: SavedWorkflow = {
@@ -539,7 +541,7 @@ Hãy chỉ trả về duy nhất một đối tượng JSON hợp lệ ở đị
       const updatedList = [newWorkflow, ...savedWorkflows];
       saveAllToLocalStorage(updatedList);
       setActiveWorkflowId(newWorkflow.id);
-      alert(`Đã kích hoạt và lưu quy trình "${activeTitle}" vào danh sách theo dõi!`);
+      toast.success(`Đã kích hoạt và lưu quy trình "${activeTitle}" vào danh sách theo dõi!`);
     }
   };
 
@@ -574,9 +576,9 @@ Hãy chỉ trả về duy nhất một đối tượng JSON hợp lệ ở đị
   };
 
   // Delete workflow record entirely
-  const handleDeleteWorkflow = (wfId: string, e: React.MouseEvent) => {
+  const handleDeleteWorkflow = async (wfId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm("Bạn có chắc chắn muốn xóa quy trình này khỏi danh sách theo dõi?")) {
+    if (await confirm({ message: "Bạn có chắc chắn muốn xóa quy trình này khỏi danh sách theo dõi?", danger: true, confirmText: 'Xóa' })) {
       const updated = savedWorkflows.filter(w => w.id !== wfId);
       saveAllToLocalStorage(updated);
       
