@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   PawPrint, ClipboardList, TrendingUp, Clock,
   CheckCircle, AlertCircle, Loader2, Camera, Calendar, X, ZoomIn,
+  Receipt, ChevronDown,
 } from 'lucide-react';
 
 const getToken = () => localStorage.getItem('paw_token') || '';
@@ -32,6 +33,7 @@ interface AdoptionData {
 interface DonationData {
   id: string; amount: number; status: string; createdAt: string;
   donorName: string; donorEmail: string; message: string; type: string;
+  billImage?: string;
   petId?: { name: string; image: string; breed: string } | null;
   userId?: { name: string; email: string; avatar?: string } | null;
 }
@@ -53,7 +55,10 @@ export const OverviewTab: React.FC = () => {
   const [loading,   setLoading]   = useState(true);
   const [errors,    setErrors]    = useState<string[]>([]);
   const [selectedTracking, setSelectedTracking] = useState<AdoptionData | null>(null);
-  const [enlargedImg, setEnlargedImg] = useState<string | null>(null);
+  const [selectedDonation, setSelectedDonation] = useState<DonationData | null>(null);
+  const [donationPage,     setDonationPage]     = useState(1);
+  const [enlargedImg,      setEnlargedImg]      = useState<string | null>(null);
+  const DONATIONS_PER_PAGE = 7;
 
   useEffect(() => {
     const errs: string[] = [];
@@ -282,99 +287,214 @@ export const OverviewTab: React.FC = () => {
       </div>
 
       {/* ── Lịch sử thu nhập ── */}
-      <div className="bg-white rounded-[32px] border border-outline-variant shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-outline-variant bg-surface-container-lowest flex items-center justify-between">
-          <h2 className="font-black text-xl tracking-tight flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-600" />
-            Lịch sử thu nhập (Quyên góp)
-          </h2>
-          <span className="text-xs font-bold text-on-surface-variant bg-surface-container px-3 py-1 rounded-full">
-            {donations.filter(d => d.status === 'paid').length} giao dịch
-          </span>
-        </div>
-        {errors.includes('donations') ? (
-          <p className="text-center py-10 text-on-surface-variant text-sm">N/A — không lấy được dữ liệu</p>
-        ) : donations.length === 0 ? (
-          <p className="text-center py-10 text-on-surface-variant text-sm">Chưa có giao dịch nào.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-surface-container-low text-[10px] uppercase font-black text-on-surface-variant tracking-[0.2em] border-b border-outline-variant">
-                  <th className="px-6 py-4">Người đóng góp</th>
-                  <th className="px-6 py-4">Thú cưng / Mục đích</th>
-                  <th className="px-6 py-4">Số tiền</th>
-                  <th className="px-6 py-4">Ngày</th>
-                  <th className="px-6 py-4">Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant">
-                {donations.slice(0, 20).map(d => {
-                  const donor = d.userId?.name || d.donorName || 'Ẩn danh';
+      {(() => {
+        const paidDonations = [...donations]
+          .filter(d => d.status === 'paid')
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        const visibleDonations = paidDonations.slice(0, donationPage * DONATIONS_PER_PAGE);
+        const hasMore = visibleDonations.length < paidDonations.length;
+        return (
+          <div className="bg-white rounded-[32px] border border-outline-variant shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-outline-variant bg-surface-container-lowest flex items-center justify-between">
+              <h2 className="font-black text-xl tracking-tight flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+                Lịch sử thu nhập (Quyên góp)
+              </h2>
+              <span className="text-xs font-bold text-on-surface-variant bg-surface-container px-3 py-1 rounded-full">
+                {paidDonations.length} giao dịch
+              </span>
+            </div>
+            {errors.includes('donations') ? (
+              <p className="text-center py-10 text-on-surface-variant text-sm">N/A — không lấy được dữ liệu</p>
+            ) : paidDonations.length === 0 ? (
+              <p className="text-center py-10 text-on-surface-variant text-sm">Chưa có giao dịch nào.</p>
+            ) : (
+              <div className="p-6 space-y-3">
+                {visibleDonations.map(d => {
+                  const donor  = d.userId?.name || d.donorName || 'Ẩn danh';
                   const avatar = d.userId?.avatar;
-                  const statusStyle = d.status === 'paid'
-                    ? 'bg-green-100 text-green-700'
-                    : d.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700';
-                  const statusText = d.status === 'paid' ? 'Thành công' : d.status === 'pending' ? 'Chờ' : 'Thất bại';
+                  const fmtDateTime = new Date(d.createdAt).toLocaleString('vi-VN', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  });
                   return (
-                    <tr key={d.id} className="hover:bg-surface-container-lowest transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {avatar ? (
-                            <img src={imgSrc(avatar)} className="w-8 h-8 rounded-xl object-cover flex-shrink-0"
-                              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-xs font-black flex-shrink-0">
-                              {donor.charAt(0)}
-                            </div>
-                          )}
-                          <div>
-                            <p className="text-sm font-bold">{donor}</p>
-                            {(d.userId?.email || d.donorEmail) && (
-                              <p className="text-[10px] text-on-surface-variant">{d.userId?.email || d.donorEmail}</p>
-                            )}
-                          </div>
+                    <div key={d.id}
+                      className="flex items-center gap-4 p-4 rounded-2xl border border-outline-variant hover:bg-surface-container-low hover:border-green-300 hover:shadow-sm cursor-pointer transition-all group"
+                      onClick={() => setSelectedDonation(d)}>
+                      {/* Avatar */}
+                      {avatar ? (
+                        <img src={imgSrc(avatar)} className="w-10 h-10 rounded-2xl object-cover flex-shrink-0"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center text-sm font-black flex-shrink-0">
+                          {donor.charAt(0)}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {d.petId?.image && (
-                            <img src={imgSrc(d.petId.image)} className="w-7 h-7 rounded-lg object-cover"
-                              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
-                          )}
-                          <div>
-                            <p className="text-sm font-semibold text-on-surface">
-                              {d.petId ? d.petId.name : '—'}
-                            </p>
-                            <p className="text-[10px] text-on-surface-variant">
-                              {d.type === 'adoption' ? 'Điều kiện nhận nuôi' : 'Quyên góp chung'}
-                            </p>
-                          </div>
+                      )}
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-bold text-on-surface">{donor}</p>
+                          <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
+                            {d.type === 'adoption' ? 'Điều kiện nhận nuôi' : 'Quyên góp chung'}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-black text-green-700">
-                          +{d.amount.toLocaleString('vi-VN')}đ
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-on-surface-variant">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />{fmt(d.createdAt)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${statusStyle}`}>
-                          {statusText}
-                        </span>
-                      </td>
-                    </tr>
+                        <p className="text-xs text-on-surface-variant mt-0.5 flex items-center gap-1 truncate">
+                          <Calendar className="w-3 h-3 flex-shrink-0" />
+                          {fmtDateTime}
+                          {d.petId && <span className="ml-1 truncate">· Bé {d.petId.name}</span>}
+                        </p>
+                      </div>
+                      {/* Amount + bill indicator */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {d.billImage && (
+                          <Receipt className="w-4 h-4 text-green-500 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        )}
+                        <span className="text-sm font-black text-green-700">+{d.amount.toLocaleString('vi-VN')}đ</span>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+                {/* Load more */}
+                {hasMore && (
+                  <div className="pt-2 flex justify-center">
+                    <button
+                      onClick={() => setDonationPage(p => p + 1)}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-outline-variant text-sm font-bold text-on-surface-variant hover:bg-surface-container-low hover:border-green-300 hover:text-green-700 transition-all">
+                      <ChevronDown className="w-4 h-4" />
+                      Tải thêm ({paidDonations.length - visibleDonations.length} giao dịch còn lại)
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
+
+      {/* ── Donation Detail Modal ── */}
+      {selectedDonation && (() => {
+        const d = selectedDonation;
+        const donor  = d.userId?.name || d.donorName || 'Ẩn danh';
+        const avatar = d.userId?.avatar;
+        const email  = d.userId?.email || d.donorEmail || '';
+        const fmtFull = new Date(d.createdAt).toLocaleString('vi-VN', {
+          weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+        });
+        const statusStyle = d.status === 'paid' ? 'bg-green-100 text-green-700' : d.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700';
+        const statusText  = d.status === 'paid' ? 'Giao dịch thành công' : d.status === 'pending' ? 'Đang chờ' : 'Thất bại';
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)' }}
+            onClick={() => setSelectedDonation(null)}>
+            <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+              style={{ animation: 'scaleIn 0.18s ease-out' }}
+              onClick={e => e.stopPropagation()}>
+
+              {/* Header */}
+              <div className="p-5 border-b border-outline-variant bg-surface-container-lowest flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-green-50 rounded-2xl">
+                    <Receipt className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-on-surface">Chi tiết giao dịch</h3>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${statusStyle}`}>{statusText}</span>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedDonation(null)}
+                  className="p-2 hover:bg-surface-container rounded-xl transition-colors">
+                  <X className="w-5 h-5 text-on-surface-variant" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                {/* Donor info */}
+                <div className="flex items-center gap-3 p-4 bg-surface-container-low rounded-2xl">
+                  {avatar ? (
+                    <img src={imgSrc(avatar)} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center text-base font-black flex-shrink-0">
+                      {donor.charAt(0)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-bold text-on-surface">{donor}</p>
+                    {email && <p className="text-xs text-on-surface-variant">{email}</p>}
+                  </div>
+                </div>
+
+                {/* Amount + time */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-green-50 rounded-2xl text-center">
+                    <p className="text-xs font-bold text-green-600 mb-1">Số tiền</p>
+                    <p className="text-xl font-black text-green-700">+{d.amount.toLocaleString('vi-VN')}đ</p>
+                  </div>
+                  <div className="p-4 bg-surface-container-low rounded-2xl text-center">
+                    <p className="text-xs font-bold text-on-surface-variant mb-1">Loại</p>
+                    <p className="text-sm font-black text-on-surface leading-tight">
+                      {d.type === 'adoption' ? 'Điều kiện nhận nuôi' : 'Quyên góp chung'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Transaction time */}
+                <div className="p-4 border border-outline-variant rounded-2xl">
+                  <p className="text-xs font-bold text-on-surface-variant mb-1.5 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" /> Thời gian thực hiện giao dịch
+                  </p>
+                  <p className="text-sm font-bold text-on-surface">{fmtFull}</p>
+                </div>
+
+                {/* Pet info */}
+                {d.petId && (
+                  <div className="flex items-center gap-3 p-4 border border-outline-variant rounded-2xl">
+                    {d.petId.image && (
+                      <img src={imgSrc(d.petId.image)} className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} alt="" />
+                    )}
+                    <div>
+                      <p className="text-xs font-bold text-on-surface-variant mb-0.5">Thú cưng liên quan</p>
+                      <p className="text-sm font-bold text-on-surface">{d.petId.name} <span className="font-normal text-on-surface-variant">· {d.petId.breed}</span></p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Message */}
+                {d.message && (
+                  <div className="p-4 bg-surface-container-low rounded-2xl">
+                    <p className="text-xs font-bold text-on-surface-variant mb-1.5">Lời nhắn</p>
+                    <p className="text-sm text-on-surface italic">"{d.message}"</p>
+                  </div>
+                )}
+
+                {/* Bill image */}
+                {d.billImage ? (
+                  <div>
+                    <p className="text-xs font-bold text-on-surface-variant mb-2 flex items-center gap-1">
+                      <Receipt className="w-3.5 h-3.5" /> Ảnh bill chuyển khoản
+                    </p>
+                    <div className="relative group cursor-zoom-in rounded-2xl overflow-hidden border border-outline-variant"
+                      onClick={() => setEnlargedImg(imgSrc(d.billImage!))}>
+                      <img src={imgSrc(d.billImage)} className="w-full object-contain max-h-64 group-hover:brightness-90 transition-all" alt="Bill chuyển khoản" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ZoomIn className="w-8 h-8 text-white drop-shadow-lg" />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 border-2 border-dashed border-outline-variant rounded-2xl text-center text-on-surface-variant">
+                    <Receipt className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm font-bold opacity-50">Chưa có ảnh bill chuyển khoản</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Tracking Detail Modal ── */}
       {selectedTracking && (() => {

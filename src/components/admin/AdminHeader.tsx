@@ -55,14 +55,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onMenuClick }) => {
         {/* Profile + Logout */}
         <div className="flex items-center gap-3 sm:gap-5 border-l pl-3 sm:pl-6 border-outline-variant/70">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-bold text-on-surface leading-tight">{user?.name || 'Guest'}</p>
+            <p className="text-sm font-bold text-on-surface leading-tight">ADMIN</p>
             <p className="text-[9px] text-primary font-black uppercase tracking-wider mt-0.5">
               {getRoleBadge(user?.role || '')}
             </p>
           </div>
 
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold shadow-md text-sm">
-            {user ? getInitials(user.name) : 'G'}
+            AD
           </div>
 
           <button onClick={handleLogout} title="Đăng xuất"

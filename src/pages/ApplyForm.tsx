@@ -31,8 +31,8 @@ export const ApplyForm: React.FC = () => {
   const [error, setError]           = useState('');
 
   // Payment gate state
-  const [donated, setDonated]       = useState(false);
-  const [donating, setDonating]     = useState(false);
+  const [donated, setDonated]         = useState(false);
+  const [donating, setDonating]       = useState(false);
   const [donateError, setDonateError] = useState('');
 
   const [formData, setFormData] = useState({
@@ -70,6 +70,7 @@ export const ApplyForm: React.FC = () => {
     };
     if (id) load();
   }, [id, token]);
+
 
   const handleDonate = async () => {
     if (!user) { navigate('/login'); return; }
