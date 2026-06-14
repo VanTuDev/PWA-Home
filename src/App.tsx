@@ -29,6 +29,7 @@ import { ToastContainer } from './components/Toast';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { Profile } from './pages/Profile';
 import { History } from './pages/History';
+import { DonatePage } from './pages/DonatePage';
 
 // Ping BE ngay khi app load để wake up Render free tier trước khi user action
 fetch('/api/').catch(() => {});
@@ -81,6 +82,7 @@ const AppContent = () => {
                 <Profile />
               </ProtectedRoute>
             } />
+            <Route path="/donate" element={<DonatePage />} />
             <Route path="/history" element={
               <ProtectedRoute allowedRoles={['admin','manager','staff','user']}>
                 <History />

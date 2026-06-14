@@ -10,6 +10,7 @@ import { OrdersTab } from '../components/admin/OrdersTab';
 import { ApplicationsTab } from '../components/admin/ApplicationsTab';
 import { ChatTab } from '../components/admin/ChatTab';
 import { AIWorkflowsTab } from '../components/admin/AIWorkflowsTab';
+import { DonationsTab } from '../components/admin/DonationsTab';
 import { ToastContainer } from '../components/Toast';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 
@@ -27,6 +28,7 @@ export const AdminDashboard: React.FC = () => {
       case 'applications': return <ApplicationsTab />;
       case 'chat':         return <ChatTab />;
       case 'workflows':    return <AIWorkflowsTab />;
+      case 'donations':    return <DonationsTab />;
       case 'users':        return isAdmin ? <UsersTab /> : <Restricted />;
       default:
         return (
