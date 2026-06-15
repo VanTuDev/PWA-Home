@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart, Gift, CheckCircle, Camera, X, Copy, Building2,
-  AlertCircle, ChevronDown, ChevronUp,
+  AlertCircle, ChevronDown, ChevronUp, Loader2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from '../utils/toast';
@@ -10,13 +10,20 @@ import { toast } from '../utils/toast';
 const PRESET_AMOUNTS = [50_000, 100_000, 200_000, 500_000, 1_000_000];
 const fmtMoney = (n: number) => n.toLocaleString('vi-VN') + 'đ';
 
-// Thông tin tài khoản ngân hàng PAW Home — cập nhật theo thực tế
-const BANK_INFO = {
-  bankName:   'Vietcombank',
-  accountNo:  '1234567890',
-  accountName: 'TRUNG TAM CUU HO THU CUNG PAW HOME',
-  branch:     'Chi nhánh Đà Nẵng',
-  content:    'UNGHOPAW',
+interface BankInfo {
+  bankName: string;
+  accountNo: string;
+  accountName: string;
+  branch: string;
+  transferContent: string;
+}
+
+const DEFAULT_BANK_INFO: BankInfo = {
+  bankName:        'Vietcombank',
+  accountNo:       '1234567890',
+  accountName:     'TRUNG TAM CUU HO THU CUNG PAW HOME',
+  branch:          'Chi nhánh Đà Nẵng',
+  transferContent: 'UNGHOPAW',
 };
 
 export const DonatePage: React.FC = () => {
@@ -24,6 +31,8 @@ export const DonatePage: React.FC = () => {
   const token = localStorage.getItem('paw_token') || '';
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [bankInfo,       setBankInfo]       = useState<BankInfo>(DEFAULT_BANK_INFO);
+  const [bankLoading,    setBankLoading]    = useState(true);
   const [selectedPreset, setSelectedPreset] = useState<number | null>(100_000);
   const [customAmount,   setCustomAmount]   = useState('');
   const [message,        setMessage]        = useState('');
@@ -35,6 +44,14 @@ export const DonatePage: React.FC = () => {
   const [loading,        setLoading]        = useState(false);
   const [success,        setSuccess]        = useState(false);
   const [showBankDetail, setShowBankDetail] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/settings/bank-info')
+      .then(r => r.json())
+      .then(data => setBankInfo({ ...DEFAULT_BANK_INFO, ...data }))
+      .catch(() => {})
+      .finally(() => setBankLoading(false));
+  }, []);
 
   const amount = customAmount ? Number(customAmount) : (selectedPreset ?? 0);
 
@@ -166,11 +183,14 @@ export const DonatePage: React.FC = () => {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-sky-100 rounded-xl flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-sky-600" />
+                {bankLoading
+                  ? <Loader2 className="w-5 h-5 text-sky-400 animate-spin" />
+                  : <Building2 className="w-5 h-5 text-sky-600" />
+                }
               </div>
               <div className="text-left">
                 <p className="font-bold text-on-surface text-sm">Thông tin chuyển khoản</p>
-                <p className="text-xs text-on-surface-variant">{BANK_INFO.bankName} · {BANK_INFO.accountNo}</p>
+                <p className="text-xs text-on-surface-variant">{bankInfo.bankName} · {bankInfo.accountNo}</p>
               </div>
             </div>
             {showBankDetail ? <ChevronUp className="w-5 h-5 text-on-surface-variant" /> : <ChevronDown className="w-5 h-5 text-on-surface-variant" />}
@@ -186,14 +206,15 @@ export const DonatePage: React.FC = () => {
                 className="overflow-hidden"
               >
                 <div className="px-6 pb-6 pt-1 space-y-3 border-t border-outline-variant">
-                  <BankRow label="Ngân hàng"    value={BANK_INFO.bankName}     />
-                  <BankRow label="Số tài khoản" value={BANK_INFO.accountNo}    onCopy={() => handleCopy(BANK_INFO.accountNo, 'số tài khoản')} />
-                  <BankRow label="Chủ tài khoản" value={BANK_INFO.accountName} />
-                  <BankRow label="Chi nhánh"    value={BANK_INFO.branch}       />
+                  <BankRow label="Ngân hàng"             value={bankInfo.bankName} />
+                  <BankRow label="Số tài khoản"          value={bankInfo.accountNo}
+                    onCopy={() => handleCopy(bankInfo.accountNo, 'số tài khoản')} />
+                  <BankRow label="Chủ tài khoản"         value={bankInfo.accountName} />
+                  {bankInfo.branch && <BankRow label="Chi nhánh" value={bankInfo.branch} />}
                   <BankRow
                     label="Nội dung chuyển khoản"
-                    value={`${BANK_INFO.content} [SỐ TIỀN]`}
-                    onCopy={() => handleCopy(BANK_INFO.content, 'nội dung')}
+                    value={`${bankInfo.transferContent} [SỐ TIỀN]`}
+                    onCopy={() => handleCopy(bankInfo.transferContent, 'nội dung')}
                   />
                   <div className="mt-3 p-3 bg-amber-50 rounded-2xl border border-amber-100 text-xs text-amber-800 leading-relaxed">
                     💡 Sau khi chuyển khoản, vui lòng chụp màn hình bill và điền form bên dưới để xác nhận.

@@ -2,9 +2,122 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   Heart, Search, X, ZoomIn, Receipt, ChevronDown,
   TrendingUp, Calendar, PawPrint, CheckCircle, Clock, AlertCircle,
+  Building2, ChevronUp, Save, Loader2,
 } from 'lucide-react';
 import { confirm } from '../ConfirmDialog';
 import { toast } from '../../utils/toast';
+
+interface BankInfo {
+  bankName: string;
+  accountNo: string;
+  accountName: string;
+  branch: string;
+  transferContent: string;
+}
+
+const BankInfoEditor: React.FC = () => {
+  const [open,    setOpen]    = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving,  setSaving]  = useState(false);
+  const [form,    setForm]    = useState<BankInfo>({
+    bankName: '', accountNo: '', accountName: '', branch: '', transferContent: '',
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    fetch('/api/settings/bank-info')
+      .then(r => r.json())
+      .then(data => setForm({ bankName: '', accountNo: '', accountName: '', branch: '', transferContent: '', ...data }))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [open]);
+
+  const handleSave = async () => {
+    if (!form.bankName || !form.accountNo || !form.accountName) {
+      toast.warning('Vui lòng điền đủ tên ngân hàng, số tài khoản và tên chủ tài khoản.'); return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch('/api/settings/bank-info', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (res.ok) { toast.success('Đã cập nhật thông tin chuyển khoản!'); setOpen(false); }
+      else toast.error(data.message || 'Lỗi khi lưu.');
+    } catch { toast.error('Không thể kết nối máy chủ.'); }
+    finally { setSaving(false); }
+  };
+
+  const inputCls = "w-full border border-outline-variant rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium transition-all";
+
+  return (
+    <div className="bg-white rounded-[28px] border border-outline-variant shadow-sm overflow-hidden">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-6 py-4 hover:bg-surface-container-low transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-sky-100 rounded-xl flex items-center justify-center">
+            <Building2 className="w-4 h-4 text-sky-600" />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-on-surface text-sm">Thông tin chuyển khoản</p>
+            <p className="text-xs text-on-surface-variant">Tùy chỉnh tài khoản ngân hàng hiển thị cho người dùng</p>
+          </div>
+        </div>
+        {open ? <ChevronUp className="w-5 h-5 text-on-surface-variant" /> : <ChevronDown className="w-5 h-5 text-on-surface-variant" />}
+      </button>
+
+      {open && (
+        <div className="px-6 pb-6 pt-1 border-t border-outline-variant space-y-4">
+          {loading ? (
+            <div className="py-6 flex justify-center"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant mb-1 block">Tên ngân hàng *</label>
+                  <input className={inputCls} placeholder="Vietcombank"
+                    value={form.bankName} onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant mb-1 block">Số tài khoản *</label>
+                  <input className={inputCls} placeholder="1234567890"
+                    value={form.accountNo} onChange={e => setForm(f => ({ ...f, accountNo: e.target.value }))} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-on-surface-variant mb-1 block">Tên chủ tài khoản *</label>
+                  <input className={inputCls} placeholder="TRUNG TAM CUU HO THU CUNG PAW HOME"
+                    value={form.accountName} onChange={e => setForm(f => ({ ...f, accountName: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant mb-1 block">Chi nhánh</label>
+                  <input className={inputCls} placeholder="Chi nhánh Đà Nẵng"
+                    value={form.branch} onChange={e => setForm(f => ({ ...f, branch: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-on-surface-variant mb-1 block">Nội dung chuyển khoản (prefix)</label>
+                  <input className={inputCls} placeholder="UNGHOPAW"
+                    value={form.transferContent} onChange={e => setForm(f => ({ ...f, transferContent: e.target.value }))} />
+                </div>
+              </div>
+              <button
+                onClick={handleSave} disabled={saving}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-md shadow-primary/20 disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
 const getToken = () => localStorage.getItem('paw_token') || '';
@@ -157,6 +270,9 @@ export const DonationsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Bank info editor */}
+      <BankInfoEditor />
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={<TrendingUp className="w-5 h-5 text-emerald-600" />} label="Tổng đã duyệt" value={fmtMoney(totalPaid)} bg="bg-emerald-50" />
