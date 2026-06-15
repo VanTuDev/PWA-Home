@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X } from 'lucide-react';
+import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X, Gift } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MissionPanel } from './MissionPanel';
 import { confirm } from './ConfirmDialog';
@@ -72,6 +72,7 @@ export const Navbar: React.FC = () => {
     { name: 'Thú cưng', path: '/pets', icon: Heart },
     { name: 'Cộng đồng', path: '/community', icon: MessageSquare },
     { name: 'Cửa hàng', path: '/shop', icon: ShoppingBag },
+    { name: 'Ủng hộ', path: '/donate', icon: Gift },
     ...(isStaff ? [{ name: 'Quản trị', path: '/admin', icon: LayoutDashboard }] : []),
   ];
 
