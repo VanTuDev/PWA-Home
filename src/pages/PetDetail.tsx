@@ -4,7 +4,8 @@ import { motion } from 'motion/react';
 import {
   Heart, MapPin, Sparkles, CheckCircle, Calendar,
   Mars as Male, Venus as Female, Stethoscope, ShieldCheck,
-  Gift, Share2, ChevronLeft, ArrowRight, Loader2, AlertCircle
+  Gift, Share2, ChevronLeft, ArrowRight, Loader2, AlertCircle,
+  Banknote, QrCode, Clock
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -33,10 +34,11 @@ export const PetDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState('');
 
-  const [donated,       setDonated]       = useState(false);
-  const [donating,      setDonating]      = useState(false);
-  const [donationError, setDonationError] = useState('');
-  const [showModal,     setShowModal]     = useState(false);
+  const [donated,        setDonated]        = useState(false);
+  const [cashPending,    setCashPending]    = useState(false);
+  const [donating,       setDonating]       = useState(false);
+  const [donationError,  setDonationError]  = useState('');
+  const [showModal,      setShowModal]      = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -50,7 +52,11 @@ export const PetDetail: React.FC = () => {
           const dr = await fetch(`/api/donations/check?petId=${petId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
-          if (dr.ok) { const dj = await dr.json(); setDonated(dj.donated); }
+          if (dr.ok) {
+            const dj = await dr.json();
+            setDonated(dj.donated);
+            if (dj.cashPending) setCashPending(true);
+          }
         }
       } catch {
         setError('Không thể tải thông tin thú cưng.');
@@ -61,18 +67,19 @@ export const PetDetail: React.FC = () => {
     load();
   }, [id, token]);
 
-  const handleDonate = async () => {
+  const handleDonate = async (paymentMethod: 'online' | 'cash') => {
     if (!user) { navigate('/login'); return; }
     setDonating(true); setDonationError('');
     try {
       const res = await fetch('/api/donations/adoption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ petId: pet!.id || pet!._id }),
+        body: JSON.stringify({ petId: pet!.id || pet!._id, paymentMethod }),
       });
       const data = await res.json();
       if (!res.ok) { setDonationError(data.message); return; }
-      if (data.alreadyDonated) { setDonated(true); setShowModal(false); return; }
+      if (data.alreadyDonated) { setDonated(true); setCashPending(false); setShowModal(false); return; }
+      if (data.cashPending) { setDonated(true); setCashPending(true); setShowModal(false); return; }
       if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank', 'noopener,noreferrer');
     } catch {
       setDonationError('Không thể kết nối máy chủ.');
@@ -128,26 +135,40 @@ export const PetDetail: React.FC = () => {
               <div className="p-3 bg-red-50 text-red-700 rounded-2xl text-sm font-semibold mb-4">{donationError}</div>
             )}
 
-            <div className="bg-amber-50 rounded-2xl p-4 mb-6 flex justify-between items-center border border-amber-100">
+            <div className="bg-amber-50 rounded-2xl p-4 mb-5 flex justify-between items-center border border-amber-100">
               <span className="text-sm font-bold text-amber-800">Khoản đóng góp</span>
               <span className="text-xl font-black text-amber-700">{pet.donationAmount.toLocaleString('vi-VN')}đ</span>
             </div>
 
-            <div className="flex gap-3">
+            <p className="text-xs text-on-surface-variant font-semibold mb-3 text-center">Chọn hình thức thanh toán</p>
+
+            <div className="flex flex-col gap-3 mb-4">
               <button
-                onClick={() => { setShowModal(false); setDonationError(''); }}
-                className="flex-1 py-3 border border-outline-variant rounded-2xl font-bold text-on-surface-variant hover:bg-surface-container transition-all"
+                onClick={() => handleDonate('online')} disabled={donating}
+                className="w-full py-3 bg-amber-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-amber-600 disabled:opacity-50 shadow-lg shadow-amber-200 transition-all"
               >
-                Để sau
+                {donating ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
+                {donating ? 'Đang xử lý...' : 'Thanh toán qua QR (PayOS)'}
               </button>
               <button
-                onClick={handleDonate} disabled={donating}
-                className="flex-[2] py-3 bg-amber-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-amber-600 disabled:opacity-50 shadow-lg shadow-amber-200 transition-all"
+                onClick={() => handleDonate('cash')} disabled={donating}
+                className="w-full py-3 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 disabled:opacity-50 shadow-lg shadow-emerald-200 transition-all"
               >
-                {donating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
-                {donating ? 'Đang xử lý...' : 'Thanh toán qua PayOS'}
+                {donating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Banknote className="w-4 h-4" />}
+                {donating ? 'Đang xử lý...' : 'Thanh toán tiền mặt'}
               </button>
             </div>
+
+            <p className="text-[10px] text-on-surface-variant text-center leading-relaxed mb-3">
+              Thanh toán tiền mặt: mang tiền đến trạm cứu hộ, admin sẽ xác nhận và cho phép hoàn tất nhận nuôi.
+            </p>
+
+            <button
+              onClick={() => { setShowModal(false); setDonationError(''); }}
+              className="w-full py-2.5 border border-outline-variant rounded-2xl font-bold text-on-surface-variant hover:bg-surface-container transition-all text-sm"
+            >
+              Để sau
+            </button>
           </motion.div>
         </div>
       )}
@@ -253,14 +274,29 @@ export const PetDetail: React.FC = () => {
                 {/* Donation badge */}
                 {needsDonation && (
                   <div className={`rounded-2xl p-4 flex items-center gap-3 border ${
-                    donated ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'
+                    donated && !cashPending ? 'bg-green-50 border-green-200' :
+                    cashPending            ? 'bg-sky-50   border-sky-200'   :
+                                             'bg-amber-50 border-amber-200'
                   }`}>
-                    <Gift className={`w-5 h-5 flex-shrink-0 ${donated ? 'text-green-600' : 'text-amber-600'}`} />
+                    {cashPending
+                      ? <Clock className="w-5 h-5 shrink-0 text-sky-600" />
+                      : <Gift  className={`w-5 h-5 shrink-0 ${donated ? 'text-green-600' : 'text-amber-600'}`} />
+                    }
                     <div>
-                      <p className={`text-[10px] font-black uppercase tracking-wider ${donated ? 'text-green-600' : 'text-amber-600'}`}>
-                        {donated ? '✓ Đã đóng góp' : 'Yêu cầu đóng góp'}
+                      <p className={`text-[10px] font-black uppercase tracking-wider ${
+                        donated && !cashPending ? 'text-green-600' :
+                        cashPending            ? 'text-sky-600'   :
+                                                 'text-amber-600'
+                      }`}>
+                        {donated && !cashPending ? '✓ Đã đóng góp' :
+                         cashPending            ? '⏳ Chờ xác nhận tiền mặt' :
+                                                  'Yêu cầu đóng góp'}
                       </p>
-                      <p className={`font-black ${donated ? 'text-green-800' : 'text-amber-800'}`}>
+                      <p className={`font-black ${
+                        donated && !cashPending ? 'text-green-800' :
+                        cashPending            ? 'text-sky-800'   :
+                                                 'text-amber-800'
+                      }`}>
                         {pet.donationAmount.toLocaleString('vi-VN')}đ
                       </p>
                     </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   Heart, Search, X, ZoomIn, Receipt, ChevronDown,
   TrendingUp, Calendar, PawPrint, CheckCircle, Clock, AlertCircle,
-  Building2, ChevronUp, Save, Loader2,
+  Building2, ChevronUp, Save, Loader2, Banknote, QrCode,
 } from 'lucide-react';
 import { confirm } from '../ConfirmDialog';
 import { toast } from '../../utils/toast';
@@ -142,6 +142,7 @@ interface DonationData {
   amount: number;
   status: string;
   type: string;
+  paymentMethod?: 'online' | 'cash';
   createdAt: string;
   donorName: string;
   donorEmail: string;
@@ -166,6 +167,14 @@ const TYPE_STYLE: Record<string, string> = {
 const TYPE_TEXT: Record<string, string> = {
   general:  'Ủng hộ',
   adoption: 'Nhận nuôi',
+};
+const PAYMENT_STYLE: Record<string, string> = {
+  online: 'bg-indigo-100 text-indigo-700',
+  cash:   'bg-lime-100   text-lime-700',
+};
+const PAYMENT_TEXT: Record<string, string> = {
+  online: 'QR / Online',
+  cash:   'Tiền mặt',
 };
 
 type StatusFilter = 'all' | 'pending' | 'paid' | 'failed';
@@ -367,6 +376,12 @@ export const DonationsTab: React.FC = () => {
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${TYPE_STYLE[d.type] || 'bg-gray-100 text-gray-600'}`}>
                     {TYPE_TEXT[d.type] || d.type}
                   </span>
+                  {d.paymentMethod && (
+                    <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${PAYMENT_STYLE[d.paymentMethod] || 'bg-gray-100 text-gray-600'}`}>
+                      {d.paymentMethod === 'cash' ? <Banknote className="w-3 h-3" /> : <QrCode className="w-3 h-3" />}
+                      {PAYMENT_TEXT[d.paymentMethod]}
+                    </span>
+                  )}
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLE[d.status] || 'bg-gray-100 text-gray-600'}`}>
                     {STATUS_TEXT[d.status] || d.status}
                   </span>
@@ -456,10 +471,31 @@ export const DonationsTab: React.FC = () => {
                     {TYPE_TEXT[selected.type] || selected.type}
                   </span>
                 } />
+                {selected.paymentMethod && (
+                  <InfoRow label="Hình thức TT" value={
+                    <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full w-fit ${PAYMENT_STYLE[selected.paymentMethod] || ''}`}>
+                      {selected.paymentMethod === 'cash' ? <Banknote className="w-3 h-3" /> : <QrCode className="w-3 h-3" />}
+                      {PAYMENT_TEXT[selected.paymentMethod]}
+                    </span>
+                  } />
+                )}
                 {selected.petId && (
                   <InfoRow label="Thú cưng" value={selected.petId.name} />
                 )}
               </div>
+
+              {/* Cash pending notice */}
+              {selected.paymentMethod === 'cash' && selected.status === 'pending' && (
+                <div className="bg-lime-50 border border-lime-200 rounded-2xl p-4 flex items-start gap-3">
+                  <Banknote className="w-5 h-5 text-lime-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-lime-800">Thanh toán tiền mặt</p>
+                    <p className="text-xs text-lime-700 mt-0.5">
+                      Người dùng đã chọn thanh toán tiền mặt tại trạm. Sau khi nhận tiền, bấm <strong>Duyệt</strong> để xác nhận và cho phép hoàn tất nhận nuôi.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Message */}
               {selected.message && (
