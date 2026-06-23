@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X, Gift } from 'lucide-react';
+import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X, Gift, Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MissionPanel } from './MissionPanel';
 import { confirm } from './ConfirmDialog';
@@ -269,67 +269,186 @@ export const Navbar: React.FC = () => {
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-surface-container-high border-t border-outline-variant pt-16 pb-8 px-margin-mobile md:px-margin-desktop">
-      <div className="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-        <div className="col-span-1 md:col-span-1">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <PawPrint className="text-on-primary w-5 h-5" />
-            </div>
-            <span className="text-lg font-bold text-primary">PAW Home</span>
+    <footer className="bg-gradient-to-b from-surface-container/40 to-surface-container-high border-t border-outline-variant pt-16 pb-8 px-margin-mobile md:px-margin-desktop relative overflow-hidden">
+      {/* Decorative subtle background shapes */}
+      <div className="absolute -top-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-16 relative z-10">
+        {/* Brand Information */}
+        <div className="col-span-1 md:col-span-4 flex flex-col justify-between">
+          <div>
+            <Link to="/" className="flex items-center gap-3 mb-6 group w-fit">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 group-hover:rotate-6 transition-all duration-300">
+                <PawPrint className="text-on-primary w-5.5 h-5.5" />
+              </div>
+              <span className="text-xl font-black text-primary tracking-tight">PAW Home</span>
+            </Link>
+            <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
+              Nền tảng cứu hộ & nhận nuôi thú cưng thông minh tại Việt Nam. Chúng tôi kết hợp công nghệ AI để kết nối những tấm lòng nhân ái, giúp mỗi bé chó mèo bị bỏ rơi tìm lại mái ấm hạnh phúc.
+            </p>
           </div>
-          <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
-            Nền tảng kết nối cứu hộ và nhận nuôi thú cưng thông minh bằng AI. Chúng tôi tin rằng mỗi bé thú cưng đều xứng đáng có một tổ ấm yêu thương.
-          </p>
+          
+          {/* Social Links inside first column for modern layout */}
+          <div className="flex items-center gap-3 mt-2">
+            <a 
+              href="https://facebook.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-[#1877F2] hover:border-transparent hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+            >
+              <Facebook className="w-4 h-4" />
+            </a>
+            <a 
+              href="https://instagram.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-gradient-to-tr hover:from-[#f9ce34] hover:via-[#ee2a7b] hover:to-[#6228d7] hover:border-transparent hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+            >
+              <Instagram className="w-4 h-4" />
+            </a>
+            <a 
+              href="https://twitter.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              aria-label="Twitter"
+              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-black hover:border-transparent hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+            >
+              <Twitter className="w-4 h-4" />
+            </a>
+          </div>
         </div>
         
-        <div>
-          <h4 className="font-bold text-on-surface mb-6">Liên kết nhanh</h4>
-          <ul className="space-y-4 text-sm text-on-surface-variant">
-            <li><Link to="/" className="hover:text-primary">Tìm thú cưng</Link></li>
-            <li><Link to="/community" className="hover:text-primary">Cộng đồng</Link></li>
-            <li><Link to="/shop" className="hover:text-primary">Cửa hàng</Link></li>
-            <li><Link to="/admin/login" className="hover:text-primary">Dành cho trung tâm</Link></li>
+        {/* Quick Links */}
+        <div className="col-span-1 md:col-span-2">
+          <h4 className="relative font-bold text-on-surface mb-6 text-base tracking-wide after:content-[''] after:absolute after:bottom-[-8px] after:left-0 after:w-8 after:h-0.5 after:bg-primary/60">
+            Khám phá
+          </h4>
+          <ul className="space-y-3.5 text-sm text-on-surface-variant mt-8">
+            <li>
+              <Link to="/" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Nhận nuôi thú cưng
+              </Link>
+            </li>
+            <li>
+              <Link to="/community" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Cộng đồng chia sẻ
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Cửa hàng thú cưng
+              </Link>
+            </li>
+            <li>
+              <Link to="/donate" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Ủng hộ cứu hộ
+              </Link>
+            </li>
+            <li>
+              <Link to="/admin/login" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Dành cho trung tâm
+              </Link>
+            </li>
           </ul>
         </div>
 
-        <div>
-          <h4 className="font-bold text-on-surface mb-6">Hỗ trợ</h4>
-          <ul className="space-y-4 text-sm text-on-surface-variant">
-            <li><a href="#" className="hover:text-primary">Hướng dẫn nhận nuôi</a></li>
-            <li><a href="#" className="hover:text-primary">Quy định cộng đồng</a></li>
-            <li><a href="#" className="hover:text-primary">Chính sách bảo mật</a></li>
-            <li><a href="#" className="hover:text-primary">Liên hệ</a></li>
+        {/* Support */}
+        <div className="col-span-1 md:col-span-2">
+          <h4 className="relative font-bold text-on-surface mb-6 text-base tracking-wide after:content-[''] after:absolute after:bottom-[-8px] after:left-0 after:w-8 after:h-0.5 after:bg-primary/60">
+            Hỗ trợ & Hướng dẫn
+          </h4>
+          <ul className="space-y-3.5 text-sm text-on-surface-variant mt-8">
+            <li>
+              <a href="#" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Hướng dẫn nhận nuôi
+              </a>
+            </li>
+            <li>
+              <a href="#" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Quy trình cứu trợ
+              </a>
+            </li>
+            <li>
+              <a href="#" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Chính sách bảo mật
+              </a>
+            </li>
+            <li>
+              <Link to="/survey" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
+                Khảo sát nhận nuôi
+              </Link>
+            </li>
           </ul>
         </div>
 
-        <div>
-          <h4 className="font-bold text-on-surface mb-6">Liên hệ</h4>
-          <ul className="space-y-4 text-sm text-on-surface-variant">
-            <li className="flex items-center gap-3">
-              <MessageSquare className="w-4 h-4 text-primary" />
-              contact@pawhome.vn
+        {/* Contact Info */}
+        <div className="col-span-1 md:col-span-4">
+          <h4 className="relative font-bold text-on-surface mb-6 text-base tracking-wide after:content-[''] after:absolute after:bottom-[-8px] after:left-0 after:w-8 after:h-0.5 after:bg-primary/60">
+            Liên hệ với chúng tôi
+          </h4>
+          <ul className="space-y-4 text-sm text-on-surface-variant mt-8">
+            <li className="flex items-center gap-3.5 group">
+              <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 shadow-sm shadow-primary/5">
+                <Mail className="w-4.5 h-4.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-on-surface-variant/60 font-semibold uppercase tracking-wider">Email</span>
+                <a href="mailto:pawhome16@gmail.com" className="hover:text-primary transition-colors text-sm break-all font-bold text-on-surface/90">
+                  pawhome16@gmail.com
+                </a>
+              </div>
             </li>
-            <li className="flex items-center gap-3">
-              <User className="w-4 h-4 text-primary" />
-              0123 456 789
+            <li className="flex items-center gap-3.5 group">
+              <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 shadow-sm shadow-primary/5">
+                <Phone className="w-4.5 h-4.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-on-surface-variant/60 font-semibold uppercase tracking-wider">Hotline</span>
+                <a href="tel:0375710464" className="hover:text-primary transition-colors text-sm font-bold text-on-surface/90">
+                  037 571 0464
+                </a>
+              </div>
+            </li>
+            <li className="flex items-center gap-3.5 group">
+              <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all duration-300 shadow-sm shadow-primary/5">
+                <MapPin className="w-4.5 h-4.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-on-surface-variant/60 font-semibold uppercase tracking-wider">Địa chỉ</span>
+                <span className="text-sm font-bold text-on-surface/90">
+                  Đà Nẵng, Việt Nam
+                </span>
+              </div>
             </li>
           </ul>
-          <div className="mt-8">
-            <h4 className="font-bold text-on-surface mb-4 text-sm">Tải ứng dụng</h4>
-            <div className="flex flex-col gap-3">
-              <a href="#" className="bg-black text-white px-4 py-2 rounded-xl flex items-center gap-3 hover:bg-gray-900 transition-all border border-gray-800">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Apple_logo_black.svg" className="w-5 h-5 invert" alt="Apple" />
+
+          <div className="mt-8 pt-6 border-t border-outline-variant/30">
+            <h5 className="font-bold text-on-surface mb-3.5 text-xs uppercase tracking-wider opacity-85">Tải ứng dụng PAW Home</h5>
+            <div className="flex gap-3">
+              <a href="#" className="flex-1 bg-black text-white px-3 py-2 rounded-xl flex items-center justify-center gap-2.5 hover:bg-neutral-900 hover:-translate-y-0.5 transition-all duration-300 border border-neutral-800/80 shadow-md">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Apple_logo_black.svg" className="w-4 h-4 invert" alt="Apple" />
                 <div className="text-left">
-                  <p className="text-[10px] leading-none opacity-60">Download on the</p>
-                  <p className="text-sm font-bold leading-none">App Store</p>
+                  <p className="text-[8px] leading-none opacity-60">Download on the</p>
+                  <p className="text-xs font-bold leading-none mt-1">App Store</p>
                 </div>
               </a>
-              <a href="#" className="bg-black text-white px-4 py-2 rounded-xl flex items-center gap-3 hover:bg-gray-900 transition-all border border-gray-800">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Google_Play_Store_badge_EN.svg" className="w-5 h-5" alt="Google Play" />
+              <a href="#" className="flex-1 bg-black text-white px-3 py-2 rounded-xl flex items-center justify-center gap-2.5 hover:bg-neutral-900 hover:-translate-y-0.5 transition-all duration-300 border border-neutral-800/80 shadow-md">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Google_Play_Store_badge_EN.svg" className="w-4 h-4" alt="Google Play" />
                 <div className="text-left">
-                  <p className="text-[10px] leading-none opacity-60">GET IT ON</p>
-                  <p className="text-sm font-bold leading-none">Google Play</p>
+                  <p className="text-[8px] leading-none opacity-60">GET IT ON</p>
+                  <p className="text-xs font-bold leading-none mt-1">Google Play</p>
                 </div>
               </a>
             </div>
@@ -337,14 +456,16 @@ export const Footer: React.FC = () => {
         </div>
       </div>
       
-      <div className="max-w-container-max mx-auto pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-xs text-on-surface-variant">
-          © 2024 PAW Home. All rights reserved.
+      <div className="max-w-container-max mx-auto pt-8 border-t border-outline-variant/60 flex flex-col sm:flex-row justify-between items-center gap-4 relative z-10">
+        <p className="text-xs text-on-surface-variant/70 font-medium">
+          © {new Date().getFullYear()} PAW Home. Bảo lưu mọi quyền.
         </p>
-        <div className="flex items-center gap-6">
-          <a href="#" className="text-on-surface-variant hover:text-primary text-xs">Facebook</a>
-          <a href="#" className="text-on-surface-variant hover:text-primary text-xs">Instagram</a>
-          <a href="#" className="text-on-surface-variant hover:text-primary text-xs">Twitter</a>
+        <div className="flex items-center gap-6 text-xs text-on-surface-variant/70">
+          <a href="#" className="hover:text-primary transition-colors">Điều khoản sử dụng</a>
+          <span className="w-1 h-1 rounded-full bg-outline-variant/40" />
+          <a href="#" className="hover:text-primary transition-colors">Chính sách bảo mật</a>
+          <span className="w-1 h-1 rounded-full bg-outline-variant/40" />
+          <a href="#" className="hover:text-primary transition-colors">Cookies</a>
         </div>
       </div>
     </footer>

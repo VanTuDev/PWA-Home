@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart, MessageSquare, Share2, Bookmark, MoreHorizontal,
   Send, Image as ImageIcon, X, Edit2, Trash2, CheckCircle,
-  TrendingUp, Loader2
+  TrendingUp, Loader2, Camera,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { confirm } from '../components/ConfirmDialog';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -353,6 +353,7 @@ const PostCard: React.FC<{
 export const Community: React.FC = () => {
   const { user, token } = useAuth();
   const navigate         = useNavigate();
+  const location         = useLocation();
 
   const [tab, setTab]           = useState<'all' | 'saved'>('all');
   const [posts, setPosts]       = useState<Post[]>([]);
@@ -363,7 +364,22 @@ export const Community: React.FC = () => {
   const [posting, setPosting]   = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [taskToast, setTaskToast] = useState('');
+  const [missionBanner, setMissionBanner] = useState<{ week: number; petName: string } | null>(null);
   const fileRef                  = useRef<HTMLInputElement>(null);
+
+  // Nhận state từ MissionPanel khi navigate → auto mở form đăng bài
+  useEffect(() => {
+    const state = location.state as { openPost?: boolean; missionWeek?: number; petName?: string } | null;
+    if (state?.openPost) {
+      setExpanded(true);
+      if (state.missionWeek && state.petName) {
+        setMissionBanner({ week: state.missionWeek, petName: state.petName });
+        setContent(`📸 Cập nhật tuần ${state.missionWeek} — Bé ${state.petName} đang rất khoẻ và vui vẻ! `);
+      }
+      // Xoá state để không bị lặp lại khi reload
+      window.history.replaceState({}, '');
+    }
+  }, []);
 
   const loadPosts = async () => {
     setLoading(true);
@@ -443,6 +459,20 @@ export const Community: React.FC = () => {
         {/* Create Post */}
         {user && tab === 'all' && (
           <div className="bg-white rounded-[32px] border border-outline-variant p-5 shadow-sm">
+            {/* Mission banner */}
+            {missionBanner && expanded && (
+              <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                <Camera className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-amber-700">Nhiệm vụ Tuần {missionBanner.week}</p>
+                  <p className="text-[10px] text-amber-600">Đăng ảnh bé {missionBanner.petName} kèm nội dung — hệ thống sẽ tự động đánh dấu hoàn thành!</p>
+                </div>
+                <button onClick={() => { setMissionBanner(null); setContent(''); }}
+                  className="text-amber-400 hover:text-amber-600 flex-shrink-0">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
             <form onSubmit={handlePost}>
               <div className="flex gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 overflow-hidden flex-shrink-0">

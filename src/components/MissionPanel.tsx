@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { CheckCircle, Circle, PawPrint, Camera, ChevronRight, Loader2, Trophy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import {
+  CheckCircle, Circle, PawPrint, Camera, Loader2, Trophy, ChevronRight,
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
 const imgSrc = (img?: string) => {
@@ -9,23 +11,28 @@ const imgSrc = (img?: string) => {
   return `${BE_URL}${img.startsWith('/') ? img : `/${img}`}`;
 };
 
-interface Week { weekNumber: number; done: boolean; report: { image: string; comment: string; submittedAt: string } | null }
+interface Week {
+  weekNumber: number;
+  done: boolean;
+  report: { image: string; comment: string; submittedAt: string } | null;
+}
 interface Task {
   adoptionId: string;
   pet: { id: string; name: string; image: string; breed: string } | null;
   status: string;
   weeks: Week[];
   currentWeek: number | null;
+  expectedWeek: number;
   completedCount: number;
 }
 
 interface Props {
   token: string | null;
-  /** gọi từ ngoài để force re-fetch sau khi đăng bài */
   refreshKey?: number;
 }
 
 export const MissionPanel: React.FC<Props> = ({ token, refreshKey }) => {
+  const navigate              = useNavigate();
   const [tasks,   setTasks]   = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,6 +50,18 @@ export const MissionPanel: React.FC<Props> = ({ token, refreshKey }) => {
 
   useEffect(() => { load(); }, [load, refreshKey]);
 
+  // Click vào tuần → chuyển sang trang Cộng đồng để đăng ảnh
+  const goPost = (weekNumber: number, petName: string) => {
+    navigate('/community', {
+      state: {
+        openPost:    true,
+        missionWeek: weekNumber,
+        petName,
+      },
+    });
+  };
+
+  /* ── Empty states ── */
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -63,17 +82,25 @@ export const MissionPanel: React.FC<Props> = ({ token, refreshKey }) => {
   if (tasks.length === 0) {
     return (
       <div className="text-center py-10 px-4">
-        <Trophy className="w-10 h-10 mx-auto mb-2 text-on-surface-variant opacity-30" />
+        <Trophy className="w-10 h-10 mx-auto mb-3 text-on-surface-variant opacity-25" />
         <p className="text-sm font-bold text-on-surface-variant">Chưa có nhiệm vụ</p>
-        <p className="text-xs text-on-surface-variant opacity-70 mt-1">Bạn sẽ nhận nhiệm vụ sau khi nhận nuôi thành công.</p>
+        <p className="text-xs text-on-surface-variant opacity-70 mt-1 leading-relaxed">
+          Bạn sẽ nhận nhiệm vụ chụp ảnh<br />sau khi nhận nuôi được phê duyệt.
+        </p>
+        <button
+          onClick={() => navigate('/')}
+          className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors"
+        >
+          <PawPrint className="w-3.5 h-3.5" /> Xem thú cưng <ChevronRight className="w-3 h-3" />
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-3">
       <p className="text-xs text-on-surface-variant font-bold uppercase tracking-wider px-1">
-        Nhiệm vụ theo dõi — đăng bài có ảnh lên Cộng đồng để hoàn thành
+        Nhiệm vụ theo dõi — đăng ảnh lên Cộng đồng mỗi tuần
       </p>
 
       {tasks.map(task => (
@@ -101,53 +128,81 @@ export const MissionPanel: React.FC<Props> = ({ token, refreshKey }) => {
 
           {/* Week tasks */}
           <div className="p-3 space-y-2">
-            {task.weeks.map(w => (
-              <div key={w.weekNumber}
-                className={`flex items-center gap-3 p-2.5 rounded-xl transition-colors ${
-                  w.done ? 'bg-green-50' : w.weekNumber === task.currentWeek ? 'bg-amber-50 border border-amber-200' : 'opacity-50'
-                }`}>
-                {w.done
-                  ? <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  : <Circle className={`w-5 h-5 flex-shrink-0 ${w.weekNumber === task.currentWeek ? 'text-amber-500' : 'text-outline-variant'}`} />
-                }
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-bold ${w.done ? 'text-green-700' : w.weekNumber === task.currentWeek ? 'text-amber-700' : 'text-on-surface-variant'}`}>
-                    Tuần {w.weekNumber} — Đăng ảnh cập nhật
-                  </p>
-                  {w.done && w.report && (
-                    <p className="text-[10px] text-green-600 mt-0.5 truncate">
-                      ✓ {new Date(w.report.submittedAt).toLocaleDateString('vi-VN')}
-                      {w.report.comment && ` · "${w.report.comment.slice(0, 40)}..."`}
+            {task.weeks.map(w => {
+              const isActive = w.weekNumber === task.currentWeek;
+              const isFuture = !w.done && w.weekNumber > (task.expectedWeek ?? 4);
+
+              return (
+                <button
+                  key={w.weekNumber}
+                  disabled={w.done || isFuture}
+                  onClick={() => goPost(w.weekNumber, task.pet?.name ?? 'bé cưng')}
+                  className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
+                    w.done
+                      ? 'bg-green-50 cursor-default'
+                      : isActive
+                        ? 'bg-amber-50 border border-amber-200 hover:bg-amber-100 active:scale-[0.99]'
+                        : isFuture
+                          ? 'opacity-40 cursor-not-allowed'
+                          : 'opacity-60 hover:bg-surface-container cursor-pointer'
+                  }`}
+                >
+                  {/* Status icon */}
+                  {w.done
+                    ? <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    : <Circle className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-amber-500' : 'text-outline-variant'}`} />
+                  }
+
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-bold ${
+                      w.done ? 'text-green-700' : isActive ? 'text-amber-700' : 'text-on-surface-variant'
+                    }`}>
+                      Tuần {w.weekNumber} — Đăng ảnh cập nhật
                     </p>
+                    {w.done && w.report && (
+                      <p className="text-[10px] text-green-600 mt-0.5 truncate">
+                        ✓ {new Date(w.report.submittedAt).toLocaleDateString('vi-VN')}
+                        {w.report.comment && ` · "${w.report.comment.slice(0, 40)}"`}
+                      </p>
+                    )}
+                    {isActive && !w.done && (
+                      <p className="text-[10px] text-amber-600 mt-0.5">
+                        Nhấn để đăng ảnh lên Cộng đồng →
+                      </p>
+                    )}
+                    {isFuture && (
+                      <p className="text-[10px] text-on-surface-variant/50 mt-0.5">Sẽ mở sau</p>
+                    )}
+                  </div>
+
+                  {/* Thumbnail nếu đã xong */}
+                  {w.done && w.report?.image && (
+                    <img
+                      src={imgSrc(w.report.image)}
+                      className="w-8 h-8 rounded-lg object-cover flex-shrink-0 border border-green-200"
+                      alt=""
+                    />
                   )}
-                  {!w.done && w.weekNumber === task.currentWeek && (
-                    <p className="text-[10px] text-amber-600 mt-0.5">Đang chờ — đăng bài có ảnh để hoàn thành</p>
+
+                  {/* Camera icon for active */}
+                  {isActive && !w.done && (
+                    <Camera className="w-4 h-4 text-amber-500 flex-shrink-0" />
                   )}
-                </div>
-                {!w.done && w.weekNumber === task.currentWeek && (
-                  <Link to="/community"
-                    className="flex-shrink-0 flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-1 rounded-lg hover:bg-amber-200 transition-colors">
-                    <Camera className="w-3 h-3" /> Đăng
-                  </Link>
-                )}
-              </div>
-            ))}
+                </button>
+              );
+            })}
           </div>
 
+          {/* All done */}
           {task.completedCount === 4 && (
             <div className="mx-3 mb-3 p-3 bg-green-100 rounded-xl flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-green-600" />
+              <Trophy className="w-5 h-5 text-green-600 flex-shrink-0" />
               <p className="text-sm font-bold text-green-700">Hoàn thành! Cảm ơn bạn đã cập nhật đầy đủ 4 tuần 🎉</p>
             </div>
           )}
         </div>
       ))}
-
-      <Link to="/community"
-        className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-outline-variant rounded-2xl text-sm font-bold text-on-surface-variant hover:border-primary hover:text-primary transition-all">
-        <Camera className="w-4 h-4" /> Đăng bài lên Cộng đồng
-        <ChevronRight className="w-4 h-4" />
-      </Link>
     </div>
   );
 };
