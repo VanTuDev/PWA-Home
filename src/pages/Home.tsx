@@ -53,7 +53,9 @@ export const Home: React.FC = () => {
               </h1>
               
               <p className="text-xl text-on-surface-variant mb-12 leading-relaxed max-w-lg font-medium opacity-80">
-                Chúng tôi kết nối những trái tim nhân hậu với những người bạn nhỏ đang chờ đợi một cơ hội thứ hai. Trải nghiệm hành trình nhận nuôi đầy cảm hứng.
+               Chúng tôi tự hào đồng hành cùng đơn vị{' '}
+               <strong className="text-primary font-black">Paws for Compassion Đà Nẵng</strong>{' '}
+               trong sứ mệnh kết nối những trái tim nhân hậu với những người bạn nhỏ đang tìm kiếm mái ấm. Sự hợp tác này giúp lan tỏa nhận thức về nhận nuôi thú cưng, tạo thêm nhiều cơ hội để các bé được giải cứu tìm thấy gia đình yêu thương và bắt đầu một cuộc sống mới tốt đẹp hơn. Trải nghiệm hành trình nhận nuôi đầy ý nghĩa và trở thành một phần của cộng đồng lan tỏa yêu thương đến động vật.
               </p>
               
               <div className="flex flex-wrap gap-3 md:gap-6">

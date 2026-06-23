@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X, Gift, Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
+import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X, Gift, Mail, Phone, MapPin, Facebook, Instagram } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MissionPanel } from './MissionPanel';
 import { confirm } from './ConfirmDialog';
@@ -274,9 +274,9 @@ export const Footer: React.FC = () => {
       <div className="absolute -top-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-16 relative z-10">
-        {/* Brand Information */}
-        <div className="col-span-1 md:col-span-4 flex flex-col justify-between">
+      <div className="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 mb-16 relative z-10">
+        {/* ── PAW Home brand ───────────────────────────── */}
+        <div className="col-span-1 md:col-span-3 flex flex-col justify-between">
           <div>
             <Link to="/" className="flex items-center gap-3 mb-6 group w-fit">
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 group-hover:rotate-6 transition-all duration-300">
@@ -285,81 +285,52 @@ export const Footer: React.FC = () => {
               <span className="text-xl font-black text-primary tracking-tight">PAW Home</span>
             </Link>
             <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
-              Nền tảng cứu hộ & nhận nuôi thú cưng thông minh tại Việt Nam. Chúng tôi kết hợp công nghệ AI để kết nối những tấm lòng nhân ái, giúp mỗi bé chó mèo bị bỏ rơi tìm lại mái ấm hạnh phúc.
+              Nền tảng cứu hộ &amp; nhận nuôi thú cưng thông minh tại Việt Nam. Chúng tôi kết hợp công nghệ AI để kết nối những tấm lòng nhân ái, giúp mỗi bé chó mèo bị bỏ rơi tìm lại mái ấm hạnh phúc.
             </p>
           </div>
-          
-          {/* Social Links inside first column for modern layout */}
+          {/* Social Icons */}
           <div className="flex items-center gap-3 mt-2">
-            <a 
-              href="https://facebook.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-[#1877F2] hover:border-transparent hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-            >
+            <a href="https://www.facebook.com/profile.php?id=61577990248702" target="_blank" rel="noopener noreferrer" aria-label="Facebook PAW Home"
+              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-[#1877F2] hover:border-transparent hover:-translate-y-1 transition-all duration-300">
               <Facebook className="w-4 h-4" />
             </a>
-            <a 
-              href="https://instagram.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-gradient-to-tr hover:from-[#f9ce34] hover:via-[#ee2a7b] hover:to-[#6228d7] hover:border-transparent hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-            >
-              <Instagram className="w-4 h-4" />
+            <a href="https://www.threads.com/@pawhome_abcd?hl=vi" target="_blank" rel="noopener noreferrer" aria-label="Threads PAW Home"
+              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-black hover:border-transparent hover:-translate-y-1 transition-all duration-300">
+              <svg viewBox="0 0 192 192" className="w-4 h-4" fill="currentColor">
+                <path d="M141.537 88.988c-.88-.415-1.78-.811-2.698-1.187-.484-18.175-9.71-28.579-25.845-28.679h-.246c-9.756 0-17.857 4.16-22.864 11.726l10.637 7.282c3.706-5.622 9.527-6.824 12.228-6.824h.167c4.724.031 8.288 1.402 10.59 4.073 1.681 1.962 2.806 4.667 3.361 8.083-4.193-.712-8.711-.93-13.527-.652-13.604.784-22.351 8.733-21.777 19.768.29 5.581 3.104 10.382 7.924 13.518 4.083 2.627 9.347 3.914 14.816 3.621 7.227-.393 12.892-3.148 16.835-8.195 3.019-3.849 4.927-8.832 5.782-15.121 3.467 2.093 6.033 4.862 7.435 8.217 2.3 5.52 2.433 14.593-4.751 21.766-6.266 6.255-13.796 8.963-25.172 9.042-12.63-.088-22.181-4.148-28.386-12.068-5.791-7.397-8.762-18.086-8.84-31.77.079-13.685 3.048-24.373 8.84-31.769 6.205-7.921 15.756-11.98 28.386-12.069 12.74.089 22.545 4.169 29.147 12.124 3.238 3.882 5.674 8.773 7.252 14.496l12.371-3.302c-1.967-7.256-5.069-13.576-9.252-18.835-8.865-11.013-21.908-16.641-38.768-16.74h-.236c-16.786.099-29.629 5.741-38.174 16.763C70.508 71.257 66.984 83.986 66.9 99.987c.084 16.002 3.608 28.731 10.478 37.84 8.545 11.022 21.388 16.664 38.174 16.763h.236c14.976-.088 25.552-4.038 34.272-12.745 11.453-11.439 11.104-25.759 7.332-34.576-2.667-6.404-7.747-11.56-15.855-15.281zM105.682 117.39c-5.965.343-12.168-2.339-12.455-8.105-.217-4.407 3.135-9.328 13.275-9.936 1.163-.067 2.305-.1 3.427-.1 3.522 0 6.822.342 9.833.991-1.118 13.95-8.267 16.768-14.08 17.15z"/>
+              </svg>
             </a>
-            <a 
-              href="https://twitter.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              aria-label="Twitter"
-              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-black hover:border-transparent hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-            >
-              <Twitter className="w-4 h-4" />
+          </div>
+        </div>
+
+        {/* ── PAWs for Compassion (ngay cạnh PAW Home) ── */}
+        <div className="col-span-1 md:col-span-3 flex flex-col justify-between">
+          <div>
+            {/* Logo */}
+            <a href="https://www.facebook.com/pawsforcompassion" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mb-6 group w-fit">
+              <img src="/paws-logo.png" alt="PAWs for Compassion Da Nang"
+                className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+            </a>
+            <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
+              Tổ chức cứu hộ thú cưng đồng hành cùng PAW Home trong sứ mệnh tìm mái ấm cho các bé tại Đà Nẵng và các tỉnh lân cận.
+            </p>
+          </div>
+          {/* Social Icons — giống PAW Home */}
+          <div className="flex items-center gap-3 mt-2">
+            <a href="https://www.facebook.com/pawsforcompassion" target="_blank" rel="noopener noreferrer" aria-label="Facebook PAWs for Compassion"
+              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-[#1877F2] hover:border-transparent hover:-translate-y-1 transition-all duration-300">
+              <Facebook className="w-4 h-4" />
+            </a>
+            <a href="https://www.instagram.com/pawsforcompassion.vn" target="_blank" rel="noopener noreferrer" aria-label="Instagram PAWs for Compassion"
+              className="w-9 h-9 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-white hover:border-transparent hover:-translate-y-1 transition-all duration-300"
+              style={{ background: 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+              <Instagram className="w-4 h-4" />
             </a>
           </div>
         </div>
         
-        {/* Quick Links */}
-        <div className="col-span-1 md:col-span-2">
-          <h4 className="relative font-bold text-on-surface mb-6 text-base tracking-wide after:content-[''] after:absolute after:bottom-[-8px] after:left-0 after:w-8 after:h-0.5 after:bg-primary/60">
-            Khám phá
-          </h4>
-          <ul className="space-y-3.5 text-sm text-on-surface-variant mt-8">
-            <li>
-              <Link to="/" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
-                Nhận nuôi thú cưng
-              </Link>
-            </li>
-            <li>
-              <Link to="/community" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
-                Cộng đồng chia sẻ
-              </Link>
-            </li>
-            <li>
-              <Link to="/shop" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
-                Cửa hàng thú cưng
-              </Link>
-            </li>
-            <li>
-              <Link to="/donate" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
-                Ủng hộ cứu hộ
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/login" className="group flex items-center gap-1.5 hover:text-primary transition-all duration-300 hover:translate-x-1.5 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-all duration-300" />
-                Dành cho trung tâm
-              </Link>
-            </li>
-          </ul>
-        </div>
-
         {/* Support */}
         <div className="col-span-1 md:col-span-2">
           <h4 className="relative font-bold text-on-surface mb-6 text-base tracking-wide after:content-[''] after:absolute after:bottom-[-8px] after:left-0 after:w-8 after:h-0.5 after:bg-primary/60">
