@@ -76,10 +76,6 @@ export const Home: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <div>
-                  <p className="text-sm font-black text-primary">+2,000</p>
-                  <p className="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Bé đã tìm thấy chủ</p>
-                </div>
               </div>
             </motion.div>
 
