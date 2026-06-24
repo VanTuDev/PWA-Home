@@ -21,6 +21,7 @@ export const Navbar: React.FC = () => {
   const [missionRefresh, setMissionRefresh]   = useState(0);
   const [mobileOpen, setMobileOpen]           = useState(false);
   const [notifications, setNotifications]     = useState<any[]>([]);
+  const [pendingTasksCount, setPendingTasksCount] = useState(0);
   const bellRef = useRef<HTMLDivElement>(null);
 
   const token = localStorage.getItem('paw_token');
@@ -33,12 +34,31 @@ export const Navbar: React.FC = () => {
     } catch { /* silent */ }
   };
 
+  const loadPendingTasksCount = async () => {
+    if (!token) return;
+    try {
+      const r = await fetch('/api/adoptions/my-tasks', { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) {
+        const tasks = await r.json();
+        const count = tasks.filter((t: any) =>
+          t.currentWeek !== null &&
+          t.weeks.some((w: any) => w.weekNumber === t.currentWeek && !w.done)
+        ).length;
+        setPendingTasksCount(count);
+      }
+    } catch { /* silent */ }
+  };
+
   useEffect(() => {
     loadNotifications();
+    loadPendingTasksCount();
   }, [token]);
 
   useEffect(() => {
-    if (bellOpen && bellTab === 'notifications') loadNotifications();
+    if (bellOpen) {
+      if (bellTab === 'notifications') loadNotifications();
+      loadPendingTasksCount();
+    }
   }, [bellOpen, bellTab]);
 
   useEffect(() => {
@@ -51,7 +71,8 @@ export const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount   = notifications.filter(n => !n.read).length;
+  const totalBadge    = unreadCount + pendingTasksCount;
 
   const markAllRead = async () => {
     if (!token || unreadCount === 0) return;
@@ -118,9 +139,9 @@ export const Navbar: React.FC = () => {
               className="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors relative"
             >
               <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
+              {totalBadge > 0 && (
                 <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-error text-white text-[9px] font-black rounded-full flex items-center justify-center border border-surface">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+                  {totalBadge > 9 ? '9+' : totalBadge}
                 </span>
               )}
             </button>
@@ -144,6 +165,11 @@ export const Navbar: React.FC = () => {
                     }`}
                   >
                     <ListTodo className="w-3.5 h-3.5" /> Nhiệm vụ
+                    {pendingTasksCount > 0 && (
+                      <span className="min-w-[16px] h-4 px-0.5 bg-amber-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                        {pendingTasksCount}
+                      </span>
+                    )}
                   </button>
                 </div>
 
@@ -167,8 +193,16 @@ export const Navbar: React.FC = () => {
                       ) : (
                         <div className="divide-y divide-outline-variant/30">
                           {notifications.map(n => (
-                            <a key={n.id} href={n.link || '#'}
-                              onClick={() => markOneRead(n.id)}
+                            <a key={n.id}
+                              href={n.link === '#missions' ? undefined : (n.link || '#')}
+                              onClick={e => {
+                                markOneRead(n.id);
+                                if (n.link === '#missions') {
+                                  e.preventDefault();
+                                  setBellTab('missions');
+                                  setMissionRefresh(k => k + 1);
+                                }
+                              }}
                               className={`flex gap-3 px-4 py-3.5 hover:bg-surface-container-low transition-colors cursor-pointer ${!n.read ? 'bg-primary/3' : ''}`}>
                               <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!n.read ? 'bg-primary' : 'bg-transparent'}`} />
                               <div className="flex-1 min-w-0">
@@ -186,7 +220,7 @@ export const Navbar: React.FC = () => {
                       )}
                     </div>
                   ) : (
-                    <MissionPanel token={token} refreshKey={missionRefresh} />
+                    <MissionPanel token={token} refreshKey={missionRefresh} onClose={() => setBellOpen(false)} />
                   )}
                 </div>
               </div>

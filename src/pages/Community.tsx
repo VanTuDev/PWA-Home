@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart, MessageSquare, Share2, Bookmark, MoreHorizontal,
   Send, Image as ImageIcon, X, Edit2, Trash2, CheckCircle,
-  TrendingUp, Loader2, Camera,
+  TrendingUp, Loader2, Camera, Trophy, ZoomIn,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -66,7 +66,8 @@ const PostCard: React.FC<{
   token: string | null;
   onUpdated: (updated: Post) => void;
   onDeleted: (id: string) => void;
-}> = ({ post, token, onUpdated, onDeleted }) => {
+  onImageClick: (src: string) => void;
+}> = ({ post, token, onUpdated, onDeleted, onImageClick }) => {
   const [showComments, setShowComments]   = useState(false);
   const [commentInput, setCommentInput]   = useState('');
   const [sendingComment, setSending]      = useState(false);
@@ -248,8 +249,14 @@ const PostCard: React.FC<{
           <>
             <p className="text-on-surface text-sm leading-relaxed mb-4 whitespace-pre-wrap">{post.content}</p>
             {post.image && (
-              <div className="rounded-[24px] overflow-hidden mb-4 border border-outline-variant">
+              <div
+                className="relative rounded-3xl overflow-hidden mb-4 border border-outline-variant group cursor-zoom-in"
+                onClick={() => onImageClick(imgSrc(post.image!))}
+              >
                 <img src={imgSrc(post.image)} className="w-full h-auto max-h-[400px] object-cover" alt="Post" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 drop-shadow-lg transition-opacity" />
+                </div>
               </div>
             )}
           </>
@@ -363,9 +370,23 @@ export const Community: React.FC = () => {
   const [imagePreview, setImagePreview] = useState('');
   const [posting, setPosting]   = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [taskToast, setTaskToast] = useState('');
+  const [completionData, setCompletionData] = useState<{ week: number; petName?: string } | null>(null);
   const [missionBanner, setMissionBanner] = useState<{ week: number; petName: string } | null>(null);
+  const [lightboxSrc, setLightboxSrc]     = useState('');
   const fileRef                  = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!completionData) return;
+    const t = setTimeout(() => setCompletionData(null), 6000);
+    return () => clearTimeout(t);
+  }, [completionData]);
+
+  useEffect(() => {
+    if (!lightboxSrc) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxSrc(''); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [lightboxSrc]);
 
   // Nhận state từ MissionPanel khi navigate → auto mở form đăng bài
   useEffect(() => {
@@ -415,8 +436,8 @@ export const Community: React.FC = () => {
       setPosts(p => [newPost, ...p]);
       setContent(''); setImageFile(null); setImagePreview(''); setExpanded(false);
       if (newPost.completedTask) {
-        setTaskToast(`✅ Hoàn thành nhiệm vụ tuần ${newPost.completedTask.weekNumber}! Kiểm tra bảng Nhiệm vụ.`);
-        setTimeout(() => setTaskToast(''), 5000);
+        setCompletionData({ week: newPost.completedTask.weekNumber, petName: missionBanner?.petName });
+        setMissionBanner(null);
       }
     }
     setPosting(false);
@@ -431,12 +452,46 @@ export const Community: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface-container-low">
-      {/* Task completion toast */}
-      {taskToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-2xl shadow-xl text-sm font-bold animate-bounce">
-          {taskToast}
-        </div>
-      )}
+      {/* Mission completion modal */}
+      <AnimatePresence>
+        {completionData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+            onClick={() => setCompletionData(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.75, y: 24 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.75, y: 24 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+              className="bg-white rounded-4xl p-8 text-center shadow-2xl max-w-sm w-full"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <Trophy className="w-12 h-12 text-green-500" />
+              </div>
+              <p className="text-base text-on-surface-variant mb-1">🎉 Xuất sắc!</p>
+              <h2 className="text-2xl font-black text-on-surface mb-3">
+                Nhiệm vụ tuần {completionData.week} đã xong!
+              </h2>
+              {completionData.petName && (
+                <p className="text-sm text-on-surface-variant mb-6">
+                  Cảm ơn bạn đã cập nhật ảnh bé <strong>{completionData.petName}</strong> 🐾
+                </p>
+              )}
+              <button
+                onClick={() => setCompletionData(null)}
+                className="bg-primary text-on-primary px-8 py-3 rounded-2xl font-bold text-sm shadow-md shadow-primary/20 hover:opacity-90 transition-opacity"
+              >
+                Tuyệt vời!
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
 
         {/* Tabs */}
@@ -571,6 +626,7 @@ export const Community: React.FC = () => {
                 token={token}
                 onUpdated={updated => setPosts(p => p.map(x => x._id === updated._id ? updated : x))}
                 onDeleted={id => setPosts(p => p.filter(x => x._id !== id))}
+                onImageClick={setLightboxSrc}
               />
             ))}
           </AnimatePresence>
@@ -579,7 +635,7 @@ export const Community: React.FC = () => {
 
       {/* Trending sidebar (desktop) */}
       <div className="hidden xl:block fixed right-8 top-24 w-64 space-y-4">
-        <div className="bg-white rounded-[24px] border border-outline-variant p-5 shadow-sm">
+        <div className="bg-white rounded-3xl border border-outline-variant p-5 shadow-sm">
           <h3 className="font-bold text-on-surface text-sm mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-primary" /> Chủ đề hot
           </h3>
@@ -592,6 +648,36 @@ export const Community: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Image lightbox */}
+      <AnimatePresence>
+        {lightboxSrc && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+            onClick={() => setLightboxSrc('')}
+          >
+            <motion.img
+              src={lightboxSrc}
+              initial={{ scale: 0.88, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.88, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+              className="max-w-full max-h-full rounded-3xl object-contain shadow-2xl cursor-zoom-out"
+              onClick={e => e.stopPropagation()}
+              alt="Xem ảnh"
+            />
+            <button
+              className="absolute top-4 right-4 w-10 h-10 bg-white/15 hover:bg-white/25 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-colors"
+              onClick={() => setLightboxSrc('')}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

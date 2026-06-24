@@ -29,9 +29,10 @@ interface Task {
 interface Props {
   token: string | null;
   refreshKey?: number;
+  onClose?: () => void;
 }
 
-export const MissionPanel: React.FC<Props> = ({ token, refreshKey }) => {
+export const MissionPanel: React.FC<Props> = ({ token, refreshKey, onClose }) => {
   const navigate              = useNavigate();
   const [tasks,   setTasks]   = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,8 +51,8 @@ export const MissionPanel: React.FC<Props> = ({ token, refreshKey }) => {
 
   useEffect(() => { load(); }, [load, refreshKey]);
 
-  // Click vào tuần → chuyển sang trang Cộng đồng để đăng ảnh
   const goPost = (weekNumber: number, petName: string) => {
+    onClose?.();
     navigate('/community', {
       state: {
         openPost:    true,
