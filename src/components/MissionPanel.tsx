@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  CheckCircle, Circle, PawPrint, Camera, Loader2, Trophy, ChevronRight,
+  CheckCircle, Circle, PawPrint, Camera, Loader2, Trophy, ChevronRight, RefreshCw,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,17 +36,26 @@ export const MissionPanel: React.FC<Props> = ({ token, refreshKey, onClose }) =>
   const navigate              = useNavigate();
   const [tasks,   setTasks]   = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(false);
 
   const load = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     setLoading(true);
+    setError(false);
     try {
       const r = await fetch('/api/adoptions/my-tasks', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (r.ok) setTasks(await r.json());
-    } catch { /* silent */ }
-    finally { setLoading(false); }
+      if (r.ok) {
+        setTasks(await r.json());
+      } else {
+        setError(true);
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [token]);
 
   useEffect(() => { load(); }, [load, refreshKey]);
@@ -76,6 +85,24 @@ export const MissionPanel: React.FC<Props> = ({ token, refreshKey, onClose }) =>
       <div className="text-center py-10 px-4">
         <PawPrint className="w-10 h-10 mx-auto mb-2 text-on-surface-variant opacity-30" />
         <p className="text-sm text-on-surface-variant">Đăng nhập để xem nhiệm vụ.</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10 px-4">
+        <RefreshCw className="w-10 h-10 mx-auto mb-3 text-on-surface-variant opacity-25" />
+        <p className="text-sm font-bold text-on-surface-variant">Không tải được nhiệm vụ</p>
+        <p className="text-xs text-on-surface-variant opacity-70 mt-1 leading-relaxed">
+          Server đang khởi động,<br />vui lòng thử lại sau giây lát
+        </p>
+        <button
+          onClick={load}
+          className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors"
+        >
+          <RefreshCw className="w-3 h-3" /> Thử lại
+        </button>
       </div>
     );
   }

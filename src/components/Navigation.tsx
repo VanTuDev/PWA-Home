@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X, Gift, Mail, Phone, MapPin, Facebook, Instagram } from 'lucide-react';
+import { PawPrint, User, ShoppingBag, MessageSquare, LayoutDashboard, Search, Bell, Menu, LogOut, UserCircle, Heart, ListTodo, X, Gift, Mail, Phone, MapPin, Facebook, Instagram, Loader2, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MissionPanel } from './MissionPanel';
 import { confirm } from './ConfirmDialog';
@@ -21,6 +21,8 @@ export const Navbar: React.FC = () => {
   const [missionRefresh, setMissionRefresh]   = useState(0);
   const [mobileOpen, setMobileOpen]           = useState(false);
   const [notifications, setNotifications]     = useState<any[]>([]);
+  const [notifLoading, setNotifLoading]       = useState(false);
+  const [notifError,   setNotifError]         = useState(false);
   const [pendingTasksCount, setPendingTasksCount] = useState(0);
   const bellRef = useRef<HTMLDivElement>(null);
 
@@ -28,10 +30,20 @@ export const Navbar: React.FC = () => {
 
   const loadNotifications = async () => {
     if (!token) return;
+    setNotifLoading(true);
+    setNotifError(false);
     try {
       const r = await fetch('/api/notifications', { headers: { Authorization: `Bearer ${token}` } });
-      if (r.ok) setNotifications(await r.json());
-    } catch { /* silent */ }
+      if (r.ok) {
+        setNotifications(await r.json());
+      } else {
+        setNotifError(true);
+      }
+    } catch {
+      setNotifError(true);
+    } finally {
+      setNotifLoading(false);
+    }
   };
 
   const loadPendingTasksCount = async () => {
@@ -177,46 +189,75 @@ export const Navbar: React.FC = () => {
                 <div className="max-h-[420px] overflow-y-auto">
                   {bellTab === 'notifications' ? (
                     <div>
-                      {notifications.length > 0 && unreadCount > 0 && (
-                        <div className="flex justify-end px-4 pt-3">
-                          <button onClick={markAllRead}
-                            className="text-[10px] font-bold text-primary hover:underline">
-                            Đánh dấu tất cả đã đọc
+                      {/* Loading */}
+                      {notifLoading && (
+                        <div className="flex flex-col items-center justify-center py-12 gap-2">
+                          <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                          <p className="text-xs text-on-surface-variant">Đang tải thông báo…</p>
+                        </div>
+                      )}
+
+                      {/* Error — server đang ngủ hoặc lỗi mạng */}
+                      {!notifLoading && notifError && (
+                        <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+                          <Bell className="w-10 h-10 text-on-surface-variant opacity-20 mb-3" />
+                          <p className="text-sm font-bold text-on-surface-variant">Không tải được thông báo</p>
+                          <p className="text-xs text-on-surface-variant/60 mt-1">Server đang khởi động, thử lại sau giây lát</p>
+                          <button
+                            onClick={loadNotifications}
+                            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors"
+                          >
+                            <RefreshCw className="w-3 h-3" /> Thử lại
                           </button>
                         </div>
                       )}
-                      {notifications.length === 0 ? (
+
+                      {/* Loaded — empty */}
+                      {!notifLoading && !notifError && notifications.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                           <Bell className="w-10 h-10 text-on-surface-variant opacity-20 mb-2" />
                           <p className="text-sm font-bold text-on-surface-variant">Chưa có thông báo</p>
                         </div>
-                      ) : (
-                        <div className="divide-y divide-outline-variant/30">
-                          {notifications.map(n => (
-                            <a key={n.id}
-                              href={n.link === '#missions' ? undefined : (n.link || '#')}
-                              onClick={e => {
-                                markOneRead(n.id);
-                                if (n.link === '#missions') {
-                                  e.preventDefault();
-                                  setBellTab('missions');
-                                  setMissionRefresh(k => k + 1);
-                                }
-                              }}
-                              className={`flex gap-3 px-4 py-3.5 hover:bg-surface-container-low transition-colors cursor-pointer ${!n.read ? 'bg-primary/3' : ''}`}>
-                              <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${!n.read ? 'bg-primary' : 'bg-transparent'}`} />
-                              <div className="flex-1 min-w-0">
-                                <p className={`text-sm leading-snug ${!n.read ? 'font-bold text-on-surface' : 'font-medium text-on-surface-variant'}`}>
-                                  {n.title}
-                                </p>
-                                {n.body && <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-2">{n.body}</p>}
-                                <p className="text-[10px] text-on-surface-variant/60 mt-1">
-                                  {new Date(n.createdAt).toLocaleString('vi-VN', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}
-                                </p>
-                              </div>
-                            </a>
-                          ))}
-                        </div>
+                      )}
+
+                      {/* Loaded — has data */}
+                      {!notifLoading && !notifError && notifications.length > 0 && (
+                        <>
+                          {unreadCount > 0 && (
+                            <div className="flex justify-end px-4 pt-3">
+                              <button onClick={markAllRead}
+                                className="text-[10px] font-bold text-primary hover:underline">
+                                Đánh dấu tất cả đã đọc
+                              </button>
+                            </div>
+                          )}
+                          <div className="divide-y divide-outline-variant/30">
+                            {notifications.map(n => (
+                              <a key={n.id}
+                                href={n.link === '#missions' ? undefined : (n.link || '#')}
+                                onClick={e => {
+                                  markOneRead(n.id);
+                                  if (n.link === '#missions') {
+                                    e.preventDefault();
+                                    setBellTab('missions');
+                                    setMissionRefresh(k => k + 1);
+                                  }
+                                }}
+                                className={`flex gap-3 px-4 py-3.5 hover:bg-surface-container-low transition-colors cursor-pointer ${!n.read ? 'bg-primary/3' : ''}`}>
+                                <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${!n.read ? 'bg-primary' : 'bg-transparent'}`} />
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm leading-snug ${!n.read ? 'font-bold text-on-surface' : 'font-medium text-on-surface-variant'}`}>
+                                    {n.title}
+                                  </p>
+                                  {n.body && <p className="text-xs text-on-surface-variant mt-0.5 line-clamp-2">{n.body}</p>}
+                                  <p className="text-[10px] text-on-surface-variant/60 mt-1">
+                                    {new Date(n.createdAt).toLocaleString('vi-VN', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}
+                                  </p>
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        </>
                       )}
                     </div>
                   ) : (
