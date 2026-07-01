@@ -353,11 +353,14 @@ export const Footer: React.FC = () => {
         {/* ── PAW Home brand ───────────────────────────── */}
         <div className="col-span-1 md:col-span-3 flex flex-col justify-between">
           <div>
-            <Link to="/" className="flex items-center gap-3 mb-6 group w-fit">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 group-hover:rotate-6 transition-all duration-300">
-                <PawPrint className="text-on-primary w-5.5 h-5.5" />
+            <Link to="/" className="flex items-start gap-3 mb-6 group w-fit">
+              <div className="w-22 h-22 bg-primary rounded-xl flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 group-hover:rotate-6 transition-all duration-300">
+                <PawPrint className="text-on-primary w-10 h-10" />
               </div>
-              <span className="text-xl font-black text-primary tracking-tight">PAW Home</span>
+              <div className="flex flex-col leading-snug pt-1">
+                <span className="text-xl font-black text-primary tracking-tight">PAW Home</span>
+                <span className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-wider mt-1">Đà Nẵng</span>
+              </div>
             </Link>
             <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
               Nền tảng cứu hộ &amp; nhận nuôi thú cưng thông minh tại Việt Nam. Chúng tôi kết hợp công nghệ AI để kết nối những tấm lòng nhân ái, giúp mỗi bé chó mèo bị bỏ rơi tìm lại mái ấm hạnh phúc.
@@ -382,9 +385,13 @@ export const Footer: React.FC = () => {
         <div className="col-span-1 md:col-span-3 flex flex-col justify-between">
           <div>
             {/* Logo */}
-            <a href="https://www.facebook.com/pawsforcompassion" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mb-6 group w-fit">
+            <a href="https://www.facebook.com/pawsforcompassion" target="_blank" rel="noopener noreferrer" className="flex items-start gap-4 mb-5 group w-fit">
               <img src="/paws-logo.png" alt="PAWs for Compassion Da Nang"
-                className="h-28 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+                className="h-24 w-24 flex-shrink-0 object-contain rounded-3xl shadow-md shadow-primary/10 group-hover:scale-105 transition-transform duration-300" />
+              <div className="flex flex-col leading-snug pt-1">
+                <span className="text-lg font-black text-primary tracking-tight">PAWs for Compassion</span>
+                <span className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-wider mt-1">Đà Nẵng</span>
+              </div>
             </a>
             <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
               Tổ chức cứu hộ thú cưng đồng hành cùng PAW Home trong sứ mệnh tìm mái ấm cho các bé tại Đà Nẵng và các tỉnh lân cận.
