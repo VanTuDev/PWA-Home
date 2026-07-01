@@ -1,5 +1,5 @@
 import React from 'react';
-import { PawPrint, LayoutDashboard, ClipboardList, Users, Settings, Sparkles, ShoppingBag, PackageCheck, MessageCircle, X, Heart } from 'lucide-react';
+import { PawPrint, LayoutDashboard, ClipboardList, Users, Settings, Sparkles, ShoppingBag, PackageCheck, MessageCircle, X, Heart, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface AdminSidebarProps {
@@ -19,6 +19,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActive
     { id: 'orders',        label: 'Đơn hàng',         icon: PackageCheck    },
     { id: 'applications',  label: 'Đơn nhận nuôi',   icon: ClipboardList   },
     { id: 'donations',     label: 'Quyên góp',        icon: Heart           },
+    { id: 'analytics',     label: 'Phân tích',        icon: BarChart3       },
     { id: 'chat',          label: 'Chat hỗ trợ',      icon: MessageCircle   },
     { id: 'workflows',     label: 'Quy trình AI',      icon: Sparkles        },
     ...(isAdmin ? [{ id: 'users', label: 'Nhân sự', icon: Users }] : []),

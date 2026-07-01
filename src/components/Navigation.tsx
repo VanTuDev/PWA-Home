@@ -384,7 +384,7 @@ export const Footer: React.FC = () => {
             {/* Logo */}
             <a href="https://www.facebook.com/pawsforcompassion" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mb-6 group w-fit">
               <img src="/paws-logo.png" alt="PAWs for Compassion Da Nang"
-                className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+                className="h-28 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
             </a>
             <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
               Tổ chức cứu hộ thú cưng đồng hành cùng PAW Home trong sứ mệnh tìm mái ấm cho các bé tại Đà Nẵng và các tỉnh lân cận.

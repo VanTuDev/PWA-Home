@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
@@ -8,6 +8,7 @@ import {
   Banknote, QrCode, Clock
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { trackEvent } from '../lib/analytics';
 
 const BE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : 'https://pwa-home-be.onrender.com';
 const imgSrc = (img: string) => {
@@ -39,6 +40,16 @@ export const PetDetail: React.FC = () => {
   const [donating,       setDonating]       = useState(false);
   const [donationError,  setDonationError]  = useState('');
   const [showModal,      setShowModal]      = useState(false);
+
+  // Tách riêng khỏi effect load pet bên dưới — effect đó phụ thuộc `token`
+  // (được AuthContext gán bất đồng bộ sau mount) nên sẽ chạy lại và đếm trùng
+  // lượt xem nếu gộp chung.
+  const trackedPetId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!id || trackedPetId.current === id) return;
+    trackedPetId.current = id;
+    trackEvent('pet_view', { petId: id });
+  }, [id]);
 
   useEffect(() => {
     const load = async () => {
@@ -89,6 +100,7 @@ export const PetDetail: React.FC = () => {
   };
 
   const handleApply = () => {
+    trackEvent('adopt_click', { petId: pet!.id || pet!._id });
     if (!user) { navigate('/login'); return; }
     if (pet!.donationAmount > 0 && !donated) { setShowModal(true); return; }
     navigate(`/apply/${pet!.id || pet!._id}`);
