@@ -487,25 +487,6 @@ export const Footer: React.FC = () => {
             </li>
           </ul>
 
-          <div className="mt-8 pt-6 border-t border-outline-variant/30">
-            <h5 className="font-bold text-on-surface mb-3.5 text-xs uppercase tracking-wider opacity-85">Tải ứng dụng PAW Home</h5>
-            <div className="flex gap-3">
-              <a href="#" className="flex-1 bg-black text-white px-3 py-2 rounded-xl flex items-center justify-center gap-2.5 hover:bg-neutral-900 hover:-translate-y-0.5 transition-all duration-300 border border-neutral-800/80 shadow-md">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Apple_logo_black.svg" className="w-4 h-4 invert" alt="Apple" />
-                <div className="text-left">
-                  <p className="text-[8px] leading-none opacity-60">Download on the</p>
-                  <p className="text-xs font-bold leading-none mt-1">App Store</p>
-                </div>
-              </a>
-              <a href="#" className="flex-1 bg-black text-white px-3 py-2 rounded-xl flex items-center justify-center gap-2.5 hover:bg-neutral-900 hover:-translate-y-0.5 transition-all duration-300 border border-neutral-800/80 shadow-md">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Google_Play_Store_badge_EN.svg" className="w-4 h-4" alt="Google Play" />
-                <div className="text-left">
-                  <p className="text-[8px] leading-none opacity-60">GET IT ON</p>
-                  <p className="text-xs font-bold leading-none mt-1">Google Play</p>
-                </div>
-              </a>
-            </div>
-          </div>
         </div>
       </div>
       
